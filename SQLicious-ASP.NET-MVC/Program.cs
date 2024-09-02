@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
+using SQLicious_ASP.NET_MVC.Data;
 
 namespace SQLicious_ASP.NET_MVC
 {
@@ -14,6 +16,10 @@ namespace SQLicious_ASP.NET_MVC
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            builder.Services.AddDbContext<RestaurantContext>(options =>
+            {
+                options.UseSqlServer(Environment.GetEnvironmentVariable("SQLICIOUS_MVC_CONNECTION"));
+            });
 
             builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
                 .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
