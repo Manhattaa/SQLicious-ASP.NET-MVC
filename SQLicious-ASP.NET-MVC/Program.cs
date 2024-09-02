@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
 using SQLicious_ASP.NET_MVC.Data;
+using DotNetEnv;
 
 namespace SQLicious_ASP.NET_MVC
 {
@@ -13,12 +14,13 @@ namespace SQLicious_ASP.NET_MVC
     {
         public static void Main(string[] args)
         {
+            Env.Load();
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
             builder.Services.AddDbContext<RestaurantContext>(options =>
             {
-                options.UseSqlServer(Environment.GetEnvironmentVariable("SQLICIOUS_MVC_CONNECTION"));
+                options.UseSqlServer(Environment.GetEnvironmentVariable("SQLICIOUS_CONNECTION"));
             });
 
             builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
