@@ -10,7 +10,7 @@ namespace SQLicious_ASP.NET_MVC.Data
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Booking> Bookings { get; set; }
         public DbSet<Admin> Admins { get; set; }
-        public DbSet<MenuItems> Menus { get; set; }
+        public DbSet<MenuItems> MenuItems { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
