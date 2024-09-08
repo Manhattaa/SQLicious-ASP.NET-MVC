@@ -26,13 +26,8 @@ namespace SQLicious_ASP.NET_MVC
             builder.Services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
                 .AddMicrosoftIdentityWebApp(builder.Configuration.GetSection("AzureAd"));
 
-            builder.Services.AddControllersWithViews(options =>
-            {
-                var policy = new AuthorizationPolicyBuilder()
-                    .RequireAuthenticatedUser()
-                    .Build();
-                options.Filters.Add(new AuthorizeFilter(policy));
-            });
+            // Add services to the container.
+            builder.Services.AddControllersWithViews();
             builder.Services.AddRazorPages()
                 .AddMicrosoftIdentityUI();
 
