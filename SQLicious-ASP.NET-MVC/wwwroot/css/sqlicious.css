@@ -1,0 +1,12 @@
+﻿.collapse navbar-collapse {
+    background-color: transparent;
+}
+
+.container {
+    padding: 0 !important; /* Remove the padding */
+    margin: 0 auto; /* Center it horizontally, if needed */
+}
+
+.text-light {
+    color: black !important; /* Use the color you want */
+}
