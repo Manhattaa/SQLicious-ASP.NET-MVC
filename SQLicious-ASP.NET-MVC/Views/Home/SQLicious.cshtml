@@ -2,33 +2,31 @@
     ViewData["Title"] = "SQLicious";
 }
 
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="#"></a>
-    <!-- Button that toggles the navbar on mobile -->
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
+<nav class="navbar-navbar">
     <!-- The menu items -->
-    <div class="collapse navbar-collapse" id="navbarNav">
+    <div id="navbars">
         <ul class="navbar-nav">
-            <li class="nav-item">
-                <a href="https://localhost:5173" class="nav-link" href="@Url.Action("book", "Home")">Boka Bord</a>
+            <li class="nav-items">
+                <a href="https://localhost:5174" class="nav-links" href="@Url.Action("book", "Home")">Boka Bord</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="@Url.Action("menu", "Home")">Vår Meny</a>
+            <li class="nav-items">
+                <a class="nav-links" href="@Url.Action("Menu", "Home")">Vår Meny</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="@Url.Action("gallery", "Home")">Galleri</a>
+            <li class="nav-items">
+                <a href="https://localhost:5174/gallery" class="nav-links" href="@Url.Action("gallery", "Home")">Galleri</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="@Url.Action("openinghours", "Home")">Öppettider</a>
+            <li class="nav-items">
+                <a class="nav-links" href="@Url.Action("openinghours", "Home")">Öppettider</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="@Url.Action("about", "Home")">Om oss</a>
+            <li class="nav-items">
+                <a href="https://localhost:5174/about" class="nav-links" href="@Url.Action("about", "Home")">Om oss</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="@Url.Action("login", "Home")">Logga in</a>
+            <li class="nav-items">
+                <a class="nav-links" href="@Url.Action("Admin", "Home")">Logga in</a>
             </li>
         </ul>
+        <br />
+        <img src="~/assets/restaurant.jpg" alt="Restaurant-Picture" class="splash-image" />
     </div>
 </nav>
+
