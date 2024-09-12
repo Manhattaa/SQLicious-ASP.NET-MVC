@@ -1,5 +1,21 @@
-﻿.collapse navbar-collapse {
-    background-color: transparent;
+﻿.navbar-nav {
+    display: flex;
+    flex-direction: row;
+    gap: 50px;
+    justify-content: center;
+}
+
+.nav-items .nav-links {
+    font-size: 16px;
+    color: black !important;
+    text-decoration: none;
+}
+
+.splash-image {
+    display: flex;
+    width: 100%;
+    height: auto;
+    border-radius: 50px;
 }
 
 .container {
