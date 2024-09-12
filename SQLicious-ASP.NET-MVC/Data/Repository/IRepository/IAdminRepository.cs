@@ -9,5 +9,7 @@ namespace SQLicious_ASP.NET_MVC.Data.Repository.IRepository
         Task<Admin> CreateAdmin(Admin admin);
         Task<Admin> UpdateAdmin(Admin admin);
         Task<Admin> DeleteAdmin(int id);
+        Task<Admin> Login(Admin admin);
+        Task<Admin> Logout(Admin admin);
     }
 }

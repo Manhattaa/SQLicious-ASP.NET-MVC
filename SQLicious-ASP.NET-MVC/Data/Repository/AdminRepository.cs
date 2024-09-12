@@ -25,6 +25,16 @@ namespace SQLicious_ASP.NET_MVC.Data.Repository
             throw new NotImplementedException();
         }
 
+        public Task<Admin> Login(Admin admin)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Admin> Logout(Admin admin)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<Admin> UpdateAdmin(Admin admin)
         {
             throw new NotImplementedException();
