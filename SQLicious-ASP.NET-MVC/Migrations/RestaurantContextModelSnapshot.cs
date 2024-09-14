@@ -40,11 +40,9 @@ namespace SQLicious_ASP.NET_MVC.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("FirstName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LastName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LockoutEnabled")
@@ -82,6 +80,63 @@ namespace SQLicious_ASP.NET_MVC.Migrations
                     b.ToTable("Admins");
                 });
 
+            modelBuilder.Entity("SQLicious_ASP.NET_MVC.Models.Booking", b =>
+                {
+                    b.Property<int>("BookingId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BookingId"));
+
+                    b.Property<int>("AmountOfCustomers")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("BookedDateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TableId")
+                        .HasColumnType("int");
+
+                    b.HasKey("BookingId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("TableId");
+
+                    b.ToTable("Bookings");
+                });
+
+            modelBuilder.Entity("SQLicious_ASP.NET_MVC.Models.Customer", b =>
+                {
+                    b.Property<int>("CustomerId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CustomerId"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("PhoneNumber")
+                        .HasColumnType("int");
+
+                    b.HasKey("CustomerId");
+
+                    b.ToTable("Customers");
+                });
+
             modelBuilder.Entity("SQLicious_ASP.NET_MVC.Models.MenuItems", b =>
                 {
                     b.Property<int>("MenuItemId")
@@ -107,6 +162,46 @@ namespace SQLicious_ASP.NET_MVC.Migrations
                     b.HasKey("MenuItemId");
 
                     b.ToTable("MenuItems");
+                });
+
+            modelBuilder.Entity("SQLicious_ASP.NET_MVC.Models.Table", b =>
+                {
+                    b.Property<int>("TableId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TableId"));
+
+                    b.Property<int>("Capacity")
+                        .HasColumnType("int");
+
+                    b.HasKey("TableId");
+
+                    b.ToTable("Tables");
+                });
+
+            modelBuilder.Entity("SQLicious_ASP.NET_MVC.Models.Booking", b =>
+                {
+                    b.HasOne("SQLicious_ASP.NET_MVC.Models.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SQLicious_ASP.NET_MVC.Models.Table", "Table")
+                        .WithMany("Bookings")
+                        .HasForeignKey("TableId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Table");
+                });
+
+            modelBuilder.Entity("SQLicious_ASP.NET_MVC.Models.Table", b =>
+                {
+                    b.Navigation("Bookings");
                 });
 #pragma warning restore 612, 618
         }
