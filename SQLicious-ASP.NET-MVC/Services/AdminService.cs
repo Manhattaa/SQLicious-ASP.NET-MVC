@@ -3,6 +3,8 @@ using SQLicious_ASP.NET_MVC.Data.Repository.IRepository;
 using SQLicious_ASP.NET_MVC.Models;
 using SQLicious_ASP.NET_MVC.Models.DTO;
 using SQLicious_ASP.NET_MVC.Options;
+using SQLicious_ASP.NET_MVC.Options.Email;
+using SQLicious_ASP.NET_MVC.Options.Email.IEmail;
 using SQLicious_ASP.NET_MVC.Services.IServices;
 using System.Security.Claims;
 
@@ -11,10 +13,14 @@ namespace SQLicious_ASP.NET_MVC.Services
     public class AdminService : IAdminService
     {
         private readonly IAdminRepository _adminRepository;
+        private readonly IEmailSender _emailSender;
+        private readonly AuthenticationService _authService;
 
-        public AdminService(IAdminRepository adminRepository)
+        public AdminService(IAdminRepository adminRepository, IEmailSender emailSender, AuthenticationService authService)
         {
             _adminRepository = adminRepository;
+            _emailSender = emailSender;
+            _authService = authService;
         }
 
         public async Task<IEnumerable<Admin>> GetAllAdmins()
@@ -27,8 +33,8 @@ namespace SQLicious_ASP.NET_MVC.Services
             return await _adminRepository.GetAdminById(id);
         }
 
-        // Update CreateAdminAsync to not require IAdminRepository as a parameter
-        public async Task<IdentityResult> CreateAdminAsync(CreateAccountRequestDTO request)
+
+        public async Task<AccountCreationResult> CreateAdminAsync(CreateAccountRequestDTO request)
         {
             // Validate inputs
             if (string.IsNullOrEmpty(request.Email) ||
@@ -36,26 +42,42 @@ namespace SQLicious_ASP.NET_MVC.Services
                 string.IsNullOrEmpty(request.Password) ||
                 string.IsNullOrEmpty(request.PasswordConfirmed))
             {
-                return IdentityResult.Failed(new IdentityError { Description = "All fields are required." });
+                return new AccountCreationResult
+                {
+                    Success = false,
+                    Errors = new List<string> { "All fields are required." }
+                };
             }
 
             // Ensure Email and EmailConfirmed match
             if (request.Email != request.EmailConfirmed)
             {
-                return IdentityResult.Failed(new IdentityError { Description = "Emails do not match." });
+                return new AccountCreationResult
+                {
+                    Success = false,
+                    Errors = new List<string> { "Emails do not match." }
+                };
             }
 
             // Ensure Password and PasswordConfirmed match
             if (request.Password != request.PasswordConfirmed)
             {
-                return IdentityResult.Failed(new IdentityError { Description = "Passwords do not match." });
+                return new AccountCreationResult
+                {
+                    Success = false,
+                    Errors = new List<string> { "Passwords do not match." }
+                };
             }
 
             // Check if email already exists
             var existingAdmin = await _adminRepository.GetAdminByEmailAsync(request.Email);
             if (existingAdmin != null)
             {
-                return IdentityResult.Failed(new IdentityError { Description = "Email is already taken." });
+                return new AccountCreationResult
+                {
+                    Success = false,
+                    Errors = new List<string> { "Email is already taken." }
+                };
             }
 
             // Create new admin
@@ -68,8 +90,33 @@ namespace SQLicious_ASP.NET_MVC.Services
             // Save the new admin to the database
             var result = await _adminRepository.CreateAdminAsync(admin, request.Password);
 
-            return result;
+            if (result.Succeeded)
+            {
+                // Send confirmation email
+                var emailResult = await _emailSender.SendEmailAsync(
+                    request.Email,
+                    "Account Created",
+                    "<p>Your admin account has been created successfully!</p>");
+
+                // Generate JWT token
+                var token = _authService.GenerateToken(admin);
+
+                return new AccountCreationResult
+                {
+                    Success = true,
+                    Token = token
+                };
+            }
+
+            // If the IdentityResult fails, return error messages
+            return new AccountCreationResult
+            {
+                Success = false,
+                Errors = result.Errors.Select(e => e.Description)
+            };
         }
+
+
 
         public async Task<IdentityResult> UpdateAdminAsync(Admin admin)
         {
@@ -83,10 +130,29 @@ namespace SQLicious_ASP.NET_MVC.Services
 
         public async Task<LoginResult> LoginAsync(string email, string password)
         {
-            return await _adminRepository.LoginAsync(email, password);
-        }
+            var admin = await _adminRepository.GetAdminByEmailAsync(email);
 
-        public async Task<IdentityResult> SendEmailVerificationAsync(string userId, string code)
+            if (admin == null)
+            {
+                return new LoginResult { Success = false, ErrorMessage = "Invalid email or password." };
+            }
+
+            // Verify the password (assuming your repository handles password verification)
+            var result = await _adminRepository.LoginAsync(email, password);
+
+            if (!result.Success)
+            {
+                return new LoginResult { Success = false, ErrorMessage = "Invalid email or password." };
+            }
+
+            // Uses authentication service and the method for token generation
+            var token = _authService.GenerateToken(admin);
+
+            return new LoginResult { Success = true, Token = token };
+        }
+    
+
+    public async Task<IdentityResult> SendEmailVerificationAsync(string userId, string code)
         {
             return await _adminRepository.SendEmailVerificationAsync(userId, code);
         }
