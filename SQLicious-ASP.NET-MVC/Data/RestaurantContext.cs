@@ -1,9 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SQLicious_ASP.NET_MVC.Models;
 
 namespace SQLicious_ASP.NET_MVC.Data
 {
-    public class RestaurantContext : DbContext
+    public class RestaurantContext : IdentityDbContext<Admin>
     {
         public RestaurantContext(DbContextOptions<RestaurantContext> options) : base(options) { }
         public DbSet<Table> Tables { get; set; }
