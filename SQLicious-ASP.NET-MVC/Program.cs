@@ -28,7 +28,7 @@ public class Program
             MailPort = int.Parse(Environment.GetEnvironmentVariable("MAILPORT")),
             SenderName = Environment.GetEnvironmentVariable("SENDERNAME"),
             Sender = Environment.GetEnvironmentVariable("SENDER"),
-            Password = Environment.GetEnvironmentVariable("MAIL_PASSWORD")
+            Password = Environment.GetEnvironmentVariable("PASSWORD")
         };
 
         builder.Services.Configure<MailKitSettings>(options =>
