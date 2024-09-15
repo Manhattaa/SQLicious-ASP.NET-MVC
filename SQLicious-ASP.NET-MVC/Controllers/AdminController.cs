@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Org.BouncyCastle.Bcpg;
 using SQLicious_ASP.NET_MVC.Models;
@@ -11,7 +12,7 @@ namespace SQLicious_ASP.NET_MVC.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AdminController : ControllerBase
+    public class AdminController : Controller
     {
         private readonly IAdminService _adminService;
 
@@ -54,14 +55,16 @@ namespace SQLicious_ASP.NET_MVC.Controllers
             var result = await _adminService.CreateAdminAsync(request);
 
             // Check if the operation succeeded
-            if (result.Succeeded)
+            if (result.Success)
             {
-                return Ok(new { Message = "Admin created successfully" });
+                // Return the success message along with the generated JWT token
+                return Ok(new { Message = "Admin created successfully", Token = result.Token });
             }
 
             // If there are errors, return them in the response
-            return BadRequest(result.Errors);
+            return BadRequest(new { Message = result.Errors });
         }
+
 
 
         // PUT: api/Admin/edit
@@ -96,6 +99,7 @@ namespace SQLicious_ASP.NET_MVC.Controllers
         }
 
         // POST: api/Admin/login
+        [Authorize]
         [HttpPost("login")]
         public async Task<IActionResult> LoginAdmin([FromBody] LoginRequestDTO model)
         {
@@ -118,6 +122,12 @@ namespace SQLicious_ASP.NET_MVC.Controllers
             }
 
             return BadRequest(new { Message = "Email verification failed" });
+        }
+
+        [NonAction]
+        public IActionResult Login()
+        {
+            return View();
         }
     }
 }
