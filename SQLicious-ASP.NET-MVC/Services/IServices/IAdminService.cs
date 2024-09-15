@@ -10,7 +10,7 @@ namespace SQLicious_ASP.NET_MVC.Services.IServices
     {
         Task<IEnumerable<Admin>> GetAllAdmins();
         Task<Admin> GetAdminById(int id);
-        Task<IdentityResult> CreateAdminAsync(CreateAccountRequestDTO request);
+        Task<AccountCreationResult> CreateAdminAsync(CreateAccountRequestDTO request);
         Task<IdentityResult> UpdateAdminAsync(Admin admin);
         Task<IdentityResult> DeleteAdminAsync(string password, ClaimsPrincipal currentUser);
         Task<LoginResult> LoginAsync(string email, string password);
