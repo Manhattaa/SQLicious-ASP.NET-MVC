@@ -27,16 +27,6 @@ namespace SQLicious_ASP.NET_MVC.Controllers
         {
             return View();
         }
-
-        public IActionResult Menu()
-        {
-            return View();
-        }
-
-        public IActionResult Admin()
-        {
-            return View();
-        }
         public IActionResult About()
         {
             return View();
