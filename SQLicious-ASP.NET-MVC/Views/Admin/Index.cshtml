@@ -1,5 +1,43 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
+    ViewData["Title"] = "Index";
 }
+
+<section class="vh-100">
+    <div class="container-fluid h-custom">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col-md-9 col-lg-6 col-xl-5">
+                <img class="img-login-container" src="~/assets/chefs-kiss.jpg" class="img-fluid" alt="Sample image">
+            </div>
+            <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1">
+                <form asp-action="Login" asp-controller="Admin" method="get">
+                    @* @Html.AntiForgeryToken() *@
+                    <!-- Email input -->
+                    <div class="form-outline mb-4">
+                        <input type="email" id="email" name="email" class="form-control form-control-lg" placeholder="Enter a valid email address" required />
+                        <label class="form-label" for="email">Email address</label>
+                    </div>
+
+                    <!-- Password input -->
+                    <div class="form-outline mb-3">
+                        <input type="password" id="password" name="password" class="form-control form-control-lg" placeholder="Enter password" required />
+                        <label class="form-label" for="password">Password</label>
+                    </div>
+
+                    <!-- Remember me (optional) -->
+                    <div class="form-check mb-0">
+                        <input class="form-check-input me-2" type="checkbox" id="rememberMe" />
+                        <label class="form-check-label" for="rememberMe">Remember me</label>
+                    </div>
+
+                    <!-- Submit button -->
+                    <div class="text-center text-lg-start mt-4 pt-2">
+                        <button asp-action="Login" type="submit" class="btn btn-primary btn-lg">Login</button>
+                        <p class="small fw-bold mt-2 pt-1 mb-0">
+                            Don't have an account? <a href="mailto:fady.hatta@chasacademy.se" class="link-danger">Inquire with your boss</a>
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
