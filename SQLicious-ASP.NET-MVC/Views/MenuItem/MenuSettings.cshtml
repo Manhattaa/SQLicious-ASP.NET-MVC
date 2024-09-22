@@ -1,0 +1,54 @@
+﻿@using SQLicious_ASP.NET_MVC.Models.DTOs
+@model IEnumerable<MenuItemDTO>
+@{
+    ViewData["Title"] = "MenuSettings";
+}
+
+<nav class="admin-navbar">
+    <ul class="navbar-nav">
+        <li class="nav-item">
+            <a href="@Url.Action("MenuSettings", "MenuItem")" class="nav-link">Menu Settings</a>
+        </li>
+        <li class="nav-item">
+            <a href="@Url.Action("AdminSettings", "Admin")" class="nav-link">Admin Settings</a>
+        </li>
+    </ul>
+</nav>
+
+<h2>Manage Menu Items</h2>
+
+<!-- Button to create a new menu item -->
+<a href="@Url.Action("Create", "MenuItem")" class="btn btn-primary">Create New Menu Item</a>
+
+<!-- Table to list all menu items with options to Edit and Delete -->
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>Available</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.Description</td>
+                <td>@item.Price.ToString("C")</td>
+                <td>@item.IsAvailable</td>
+                <td>
+                    <!-- Edit button -->
+                    <a href="@Url.Action("Edit", "MenuItem", new { id = item.MenuItemId })" class="btn btn-warning">Edit</a>
+
+                    <!-- Delete button -->
+                    <form method="post" action="@Url.Action("Delete", "MenuItem", new { id = item.MenuItemId })" style="display:inline;">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
