@@ -7,26 +7,42 @@
     <div id="navbars">
         <ul class="navbar-nav">
             <li class="nav-items">
-                <a href="https://localhost:5174" class="nav-links" href="@Url.Action("book", "Home")">Boka Bord</a>
+                <a href="@Url.Action("book", "Home")" class="nav-links">BOKA BORD</a>
             </li>
             <li class="nav-items">
-                <a class="nav-links" href="@Url.Action("Menu", "Home")">Vår Meny</a>
+                <a href="@Url.Action("Menu", "MenuItem")" class="nav-links">VÅR MENY</a>
             </li>
             <li class="nav-items">
-                <a href="https://localhost:5174/gallery" class="nav-links" href="@Url.Action("gallery", "Home")">Galleri</a>
+                <a href="@Url.Action("Menu", "MenuItem")" class="nav-links">FRUKOST</a>
             </li>
             <li class="nav-items">
-                <a class="nav-links" href="@Url.Action("openinghours", "Home")">Öppettider</a>
+                <a href="@Url.Action("Menu", "MenuItem")" class="nav-links">BRUNCH</a>
             </li>
             <li class="nav-items">
-                <a href="https://localhost:5174/about" class="nav-links" href="@Url.Action("about", "Home")">Om oss</a>
+                <a href="@Url.Action("Menu", "MenuItem")" class="nav-links">LUNCH</a>
             </li>
             <li class="nav-items">
-                <a class="nav-links" href="@Url.Action("Admin", "Home")">Logga in</a>
+                <a href="@Url.Action("Menu", "MenuItem")" class="nav-links">MIDDAG</a>
+            </li>
+            <li class="nav-items">
+                <a href="@Url.Action("gallery", "Home")" class="nav-links">GALLERI</a>
+            </li>
+            <li class="nav-items">
+                <a href="@Url.Action("about", "Home")" class="nav-links">OM OSS</a>
+            </li>
+            <li class="nav-items">
+                <a href="@Url.Action("Index", "Admin")" class="nav-links">LOGGA IN</a>
             </li>
         </ul>
         <br />
-        <img src="~/assets/restaurant.jpg" alt="Restaurant-Picture" class="splash-image" />
-    </div>
-</nav>
+        <div class="image-container">
+            <img src="~/assets/restaurant.jpg" alt="Restaurant-Picture" class="splash-image" />
 
+            <!-- Square border with "Book Table" header and button -->
+            <div class="book-table-container">
+                <h2 class="book-table-header">BOKA BORD</h2>
+                <a href="https://localhost://5173" class="book-table-button">SQLICIOUS</a>
+                <h3 class="book-table-button2-dividertext">ELLER VÅR SYSTERKROG</h3>
+                <a href="" class="book-table-button2">ALDOR'S BYTE BISTRO'</a>
+            </div>
+        </div>
