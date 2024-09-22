@@ -1,133 +1,97 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Org.BouncyCastle.Bcpg;
-using SQLicious_ASP.NET_MVC.Models;
-using SQLicious_ASP.NET_MVC.Models.DTO;
-using SQLicious_ASP.NET_MVC.Services.IServices;
-using System.Security.Claims;
-using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
+﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using System.Text;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using System.Text.Json.Nodes;
+using Newtonsoft.Json.Linq;
 
 namespace SQLicious_ASP.NET_MVC.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("admin")]
     public class AdminController : Controller
     {
-        private readonly IAdminService _adminService;
+        private readonly IHttpClientFactory _clientFactory;
 
-        public AdminController(IAdminService adminService)
+        // injecting httpclientfactory instead of httpclient
+        public AdminController(IHttpClientFactory clientFactory)
         {
-            _adminService = adminService;
+            _clientFactory = clientFactory;
         }
 
-        // GET: api/Admin/all
-        [HttpGet("all")]
-        public async Task<IActionResult> GetAllAdmins()
-        {
-            var admins = await _adminService.GetAllAdmins();
-            return Ok(admins);
-        }
-
-        // GET: api/Admin/{id}
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetAdminById(int id)
-        {
-            var admin = await _adminService.GetAdminById(id);
-            if (admin == null)
-            {
-                return NotFound();
-            }
-            return Ok(admin);
-        }
-
-        // POST: api/Admin/create
-        [HttpPost("create")]
-        public async Task<IActionResult> CreateAdmin([FromBody] CreateAccountRequestDTO request)
-        {
-            // Validate the incoming model based on the Data Annotations in CreateAccountRequestDTO
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            // Call the service method to create the admin
-            var result = await _adminService.CreateAdminAsync(request);
-
-            // Check if the operation succeeded
-            if (result.Success)
-            {
-                // Return the success message along with the generated JWT token
-                return Ok(new { Message = "Admin created successfully", Token = result.Token });
-            }
-
-            // If there are errors, return them in the response
-            return BadRequest(new { Message = result.Errors });
-        }
-
-
-
-        // PUT: api/Admin/edit
-        [HttpPut("edit")]
-        public async Task<IActionResult> EditAdmin([FromBody] Admin admin)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var result = await _adminService.UpdateAdminAsync(admin);
-            if (result.Succeeded)
-            {
-                return Ok(new { Message = "Admin updated successfully" });
-            }
-
-            return BadRequest(result.Errors);
-        }
-
-        // DELETE: api/Admin/delete/{id}
-        [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> DeleteAdmin(int id, [FromBody] DeleteAdminRequestModel model)
-        {
-            var result = await _adminService.DeleteAdminAsync(model.Password, User);
-            if (result.Succeeded)
-            {
-                return Ok(new { Message = "Admin deleted successfully" });
-            }
-
-            return BadRequest(result.Errors);
-        }
-
-        // POST: api/Admin/login
-        [Authorize]
-        [HttpPost("login")]
-        public async Task<IActionResult> LoginAdmin([FromBody] LoginRequestDTO model)
-        {
-            var result = await _adminService.LoginAsync(model.Email, model.Password);
-            if (result.Success)
-            {
-                return Ok(new { Message = "Login successful" });
-            }
-
-            return Unauthorized(result.ErrorMessage);
-        }
-
-        [HttpPost("confirm-email")]
-        public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmEmailRequestDTO model)
-        {
-            var result = await _adminService.SendEmailVerificationAsync(model.UserId, model.Code);
-            if (result.Succeeded)
-            {
-                return Ok(new { Message = "Email confirmed successfully" });
-            }
-
-            return BadRequest(new { Message = "Email verification failed" });
-        }
-
-        [NonAction]
-        public IActionResult Login()
+        [HttpGet("index")]
+        public IActionResult Index()
         {
             return View();
+        }
+
+        [HttpGet("dashboard")]
+        public IActionResult Dashboard()
+        {
+            return View();
+        }
+        [HttpGet("adminsettings")]
+        public IActionResult AdminSettings()
+        {
+            return View();
+        }
+
+        //[HttpGet("login")]
+        //public IActionResult Login(string email, string password)
+        //{
+        //    return RedirectToAction("Dashboard", "Admin");
+        //}
+
+        [HttpGet("login")]
+        public async Task<IActionResult> Login(string email, string password)
+        {
+            var loginData = new Dictionary<string, string>
+            {
+                { "email", email },
+                { "password", password }
+            };
+
+            // No need to serialize to JSON; send as form data
+            var client = _clientFactory.CreateClient();
+            var content = new FormUrlEncodedContent(loginData);
+
+            // Send form-encoded data
+            var response = await client.PostAsync("https://localhost:7213/api/Admin/Login", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsStringAsync();
+                var jsonObject = JObject.Parse(result);
+                string token = jsonObject["token"].ToString();
+                //var token = JsonConvert.DeserializeObject<dynamic>(result)?.Token;
+
+                if (token != null)
+                {
+                    // Store the JWT token in a cookie
+                    Response.Cookies.Append("JWTToken", token, new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = true,
+                        Expires = DateTimeOffset.UtcNow.AddHours(1)
+                    });
+
+                    ViewBag.Message = "Login Successful!";
+                    return RedirectToAction("Dashboard", "Admin");
+                }
+            }
+
+            ViewBag.Message = "Login failed! Please try again.";
+            return View("Index");
+        }
+
+        [HttpGet("logout")]
+        public IActionResult Logout()
+        {
+            Response.Cookies.Delete("JWTToken");
+            ViewBag.Message = "Logged out successfully.";
+            return RedirectToAction("Login", "Admin");
         }
     }
 }
