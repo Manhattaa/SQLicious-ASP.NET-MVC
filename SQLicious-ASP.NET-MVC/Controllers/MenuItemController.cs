@@ -1,103 +1,132 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using SQLicious_ASP.NET_MVC.Models.DTO;
-using SQLicious_ASP.NET_MVC.Models;
-using SQLicious_ASP.NET_MVC.Services.IServices;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using SQLicious_ASP.NET_MVC.Models.DTOs;
+using System.Text;
 
 namespace SQLicious_ASP.NET_MVC.Controllers
 {
-    public class MenuItemController : Controller
-    {
-        private readonly IMenuItemService _menuItemService;
-
-        public MenuItemController(IMenuItemService menuItemService)
+        [ApiController]
+        [Route("menuitem")]
+        public class MenuItemController : Controller
         {
-            _menuItemService = menuItemService;
-        }
+            private readonly IHttpClientFactory _clientFactory;
 
-        // GET: MenuItem
-        public async Task<IActionResult> Index()
-        {
-            var listOfMenuItems = await _menuItemService.GetAllMenuItemsAsync();
-            return View(listOfMenuItems);
-        }
-
-        // GET: MenuItem/Details/5
-        public async Task<IActionResult> Details(int id)
-        {
-            var menuItem = await _menuItemService.GetMenuItemByIdAsync(id);
-            if (menuItem == null)
+            public MenuItemController(IHttpClientFactory clientFactory)
             {
-                return NotFound();
-            }
-            return View(menuItem);
-        }
-
-        // GET: MenuItem/Create
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: MenuItem/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(MenuItemDTO menuItem)
-        {
-            if (ModelState.IsValid)
-            {
-                await _menuItemService.CreateMenuItemAsync(menuItem);
-                return RedirectToAction(nameof(Index));
-            }
-            return View(menuItem);
-        }
-
-        // GET: MenuItem/Edit/5
-        public async Task<IActionResult> Edit(int id)
-        {
-            var menuItem = await _menuItemService.GetMenuItemByIdAsync(id);
-            if (menuItem == null)
-            {
-                return NotFound();
-            }
-            return View(menuItem);
-        }
-
-        // POST: MenuItem/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, MenuItems menuItem)
-        {
-            if (id != menuItem.MenuItemId)
-            {
-                return BadRequest();
+                _clientFactory = clientFactory;
             }
 
-            if (ModelState.IsValid)
+            public IActionResult Menu()
             {
-                await _menuItemService.UpdateMenuItemAsync(menuItem);
-                return RedirectToAction(nameof(Index));
+                return View();
             }
-            return View(menuItem);
+        [HttpGet("menusettings")]
+        public async Task<IActionResult> MenuSettings()
+        {
+            var client = _clientFactory.CreateClient();
+            var response = await client.GetAsync("https://localhost:7213/api/MenuItem");
+
+            if (response.IsSuccessStatusCode)
+            {
+                // Deserialize the JSON response into a list of MenuItemDTO objects
+                var menuItems = JsonConvert.DeserializeObject<IEnumerable<MenuItemDTO>>(await response.Content.ReadAsStringAsync());
+
+                // Pass the list of menu items to the view
+                return View(menuItems);
+            }
+
+            // Handle case when API call fails
+            return View(new List<MenuItemDTO>()); // Return an empty list to prevent null references in the view
         }
 
-        // GET: MenuItem/Delete/5
-        public async Task<IActionResult> Delete(int id)
-        {
-            var menuItem = await _menuItemService.GetMenuItemByIdAsync(id);
-            if (menuItem == null)
+        // Publicly accessible, no authentication required
+        [HttpGet("index")]
+            public async Task<IActionResult> Index()
             {
-                return NotFound();
-            }
-            return View(menuItem);
-        }
+                var client = _clientFactory.CreateClient();
+                var response = await client.GetAsync("https://localhost:7213/api/MenuItem");
 
-        // POST: MenuItem/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            await _menuItemService.DeleteMenuItemAsync(id);
-            return RedirectToAction(nameof(Index));
+                if (response.IsSuccessStatusCode)
+                {
+                    var menuItems = JsonConvert.DeserializeObject<IEnumerable<MenuItemDTO>>(await response.Content.ReadAsStringAsync());
+                    return View(menuItems); 
+                }
+
+                return View("Error"); // Handle error cases
+            }
+
+            // Only accessible by users with the "Admin" role
+            [Authorize(Roles = "Admin")]
+            [HttpGet("create")]
+            public IActionResult Create()
+            {
+                return View();
+            }
+
+            //[Authorize(Roles = "Admin")]
+            [HttpPost("create")]
+            public async Task<IActionResult> Create(MenuItemCreationDTO menuItemDto)
+            {
+                var client = _clientFactory.CreateClient();
+                var jsonContent = new StringContent(JsonConvert.SerializeObject(menuItemDto), Encoding.UTF8, "application/json");
+
+                var response = await client.PostAsync("https://localhost:7213/api/MenuItem/create", jsonContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return RedirectToAction("Index");
+                }
+
+                return View(menuItemDto);
+            }
+
+            //[Authorize(Roles = "Admin")]
+            [HttpGet("edit/{id}")]
+            public async Task<IActionResult> Edit(int id)
+            {
+                var client = _clientFactory.CreateClient();
+                var response = await client.GetAsync($"https://localhost:7213/api/MenuItem/{id}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var menuItem = JsonConvert.DeserializeObject<MenuItemDTO>(await response.Content.ReadAsStringAsync());
+                    return View(menuItem);
+                }
+
+                return View("Error");
+            }
+
+            //[Authorize(Roles = "Admin")]
+            [HttpPost("edit/{id}")]
+            public async Task<IActionResult> Edit(int id, MenuItemDTO menuItemDto)
+            {
+                var client = _clientFactory.CreateClient();
+                var jsonContent = new StringContent(JsonConvert.SerializeObject(menuItemDto), Encoding.UTF8, "application/json");
+
+                var response = await client.PutAsync($"https://localhost:7213/api/MenuItem/{id}", jsonContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return RedirectToAction("Index");
+                }
+
+                return View(menuItemDto);
+            }
+
+            //[Authorize(Roles = "Admin")]
+            [HttpPost("delete/{id}")]
+            public async Task<IActionResult> Delete(int id)
+            {
+                var client = _clientFactory.CreateClient();
+                var response = await client.DeleteAsync($"https://localhost:7213/api/MenuItem/{id}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return RedirectToAction("Index");
+                }
+
+                return View("Error");
+            }
         }
-    }
 }
