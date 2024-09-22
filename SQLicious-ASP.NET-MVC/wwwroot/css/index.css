@@ -1,4 +1,75 @@
-.display-4 {
+/* Image container */
+.image-container {
+    display: flex;
+    position: relative; 
+    text-align: center;
+    width: 100%; 
+}
+
+.splash-image {
+    width: 100%; 
+    height: auto; 
+}
+
+/* Book a table container */
+.book-table-container {
+    display: flex;
+    position: absolute; 
+    top: 25%; 
+    left: 75%; 
+    transform: translate(-50%, -50%); 
+    width: 350px; 
+    height: 280px; 
+    background-color: rgba(0, 0, 0, 0.6); 
+    display: flex;
+    border-radius: 5px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 1; 
+    border: 2px solid white; 
+}
+
+/* Header styles */
+.book-table-header {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    color: white;
+    font-size: 1.5rem;
+    margin-bottom: 35px; /* space between the header and buttons */
+}
+
+/* Button styles */
+.book-table-button, .book-table-button2 {
+    display: inline-block;
+    background-color: #FF5733;
+    color: white;
+    padding: 7.5px 15px;
+    text-decoration: none;
+    font-size: 1.2rem;
+    border-radius: 2px;
+    margin-top: 10px; /* space between the buttons */
+}
+h2 {
+    font-size:30px;
+    margin-bottom: 10px;
+}
+
+h3 {
     font-size: 20px;
-    font-weight: lighter;
+    color: white;
+    margin-top: 5px;
+}
+
+    /* Button hover effect */
+    .book-table-button:hover, .book-table-button2:hover {
+        background-color: #C70039;
+    }
+
+/* Border and z-index tweaks to ensure visibility */
+.book-table-container {
+    border: 3px solid white; 
+    z-index: 1; 
 }
