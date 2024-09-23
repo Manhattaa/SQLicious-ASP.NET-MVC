@@ -1,5 +1,13 @@
 ﻿namespace SQLicious_ASP.NET_MVC.Models.DTOs
 {
+    public enum MenuType
+    {
+        Frukost,
+        Brunch,
+        Lunch,
+        Middag,
+        Julbord
+    }
     public class MenuItemCreationDTO
     {
         public string Name { get; set; }
