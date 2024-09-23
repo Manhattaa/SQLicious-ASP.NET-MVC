@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using System.Text.Json.Nodes;
 using Newtonsoft.Json.Linq;
+using Microsoft.AspNetCore.Authentication;
 
 namespace SQLicious_ASP.NET_MVC.Controllers
 {
@@ -86,12 +87,12 @@ namespace SQLicious_ASP.NET_MVC.Controllers
             return View("Index");
         }
 
-        [HttpGet("logout")]
-        public IActionResult Logout()
+        [HttpPost]
+        public async Task<IActionResult> Logout()
         {
             Response.Cookies.Delete("JWTToken");
             ViewBag.Message = "Logged out successfully.";
-            return RedirectToAction("Login", "Admin");
+            return RedirectToAction("SQLicious", "Home");
         }
     }
 }
