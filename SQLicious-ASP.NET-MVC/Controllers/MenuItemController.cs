@@ -6,20 +6,28 @@ using System.Text;
 
 namespace SQLicious_ASP.NET_MVC.Controllers
 {
-    [ApiController]
-    [Route("menuitem")]
     public class MenuItemController : Controller
     {
         private readonly IHttpClientFactory _clientFactory;
+
 
         public MenuItemController(IHttpClientFactory clientFactory)
         {
             _clientFactory = clientFactory;
         }
 
-        public IActionResult Menu()
+        public async Task<IActionResult> Menu()
         {
-            return View();
+            var client = _clientFactory.CreateClient();
+            var response = await client.GetAsync("https://localhost:7213/api/MenuItem/mostrecentpdfs");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var mostRecentPdfs = JsonConvert.DeserializeObject<IEnumerable<MenuPDFDTO>>(await response.Content.ReadAsStringAsync());
+                return View(mostRecentPdfs);  
+            }
+
+            return View(new List<MenuPDFDTO>()); 
         }
 
         [HttpGet("menusettings")]
@@ -35,23 +43,14 @@ namespace SQLicious_ASP.NET_MVC.Controllers
                 return View(menuItems);
             }
 
-            return View(new List<MenuItemDTO>()); // Return an empty list to prevent null references in the view
+            return View(new List<MenuItemDTO>());
         }
 
         // Publicly accessible, no authentication required
         [HttpGet("index")]
         public async Task<IActionResult> Index()
         {
-            var client = _clientFactory.CreateClient();
-            var response = await client.GetAsync("https://localhost:7213/api/MenuItem");
-
-            if (response.IsSuccessStatusCode)
-            {
-                var menuItems = JsonConvert.DeserializeObject<IEnumerable<MenuItemDTO>>(await response.Content.ReadAsStringAsync());
-                return View(menuItems);
-            }
-
-            return View("Error");
+            return View();
         }
 
         [HttpGet("create")]
@@ -61,7 +60,7 @@ namespace SQLicious_ASP.NET_MVC.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> Create([FromBody] MenuItemCreationDTO menuItemDto)
+        public async Task<IActionResult> Create([FromForm] MenuItemCreationDTO menuItemDto)
         {
             var client = _clientFactory.CreateClient();
 
@@ -84,7 +83,7 @@ namespace SQLicious_ASP.NET_MVC.Controllers
         public async Task<IActionResult> Edit(int id)
         {
             var client = _clientFactory.CreateClient();
-            var response = await client.GetAsync($"https://localhost:7213/api/MenuItem/{id}");
+            var response = await client.GetAsync($"https://localhost:7213/api/MenuItem/update{id}");
 
             if (response.IsSuccessStatusCode)
             {
@@ -95,35 +94,83 @@ namespace SQLicious_ASP.NET_MVC.Controllers
             return View("Error");
         }
 
-        [HttpPost("edit/{id}")]
-        public async Task<IActionResult> Edit(int id, MenuItemDTO menuItemDto)
+        [HttpPut("edit/{id}")]
+        public async Task<IActionResult> Edit([FromForm] int id, MenuItemDTO menuItemDto)
         {
+
             var client = _clientFactory.CreateClient();
             var jsonContent = new StringContent(JsonConvert.SerializeObject(menuItemDto), Encoding.UTF8, "application/json");
 
-            var response = await client.PutAsync($"https://localhost:7213/api/MenuItem/{id}", jsonContent);
+            var response = await client.PutAsync($"https://localhost:7213/api/MenuItem/update/{id}", jsonContent);
 
             if (response.IsSuccessStatusCode)
             {
-                return RedirectToAction("MenuSettings"); // Reloads the same page
+                return RedirectToAction("MenuSettings");
             }
 
-            return View("Error");
+            return View(menuItemDto);
         }
+
 
 
         [HttpPost("delete/{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             var client = _clientFactory.CreateClient();
-            var response = await client.DeleteAsync($"https://localhost:7213/api/MenuItem/{id}");
+            var response = await client.DeleteAsync($"https://localhost:7213/api/MenuItem/delete/{id}");
 
             if (response.IsSuccessStatusCode)
             {
-                return RedirectToAction("Index");
+                return RedirectToAction("MenuSettings");
+            }
+
+            return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GenerateMenuPdf(string menuType)
+        {
+            var client = _clientFactory.CreateClient();
+            var response = await client.GetAsync($"https://localhost:7213/api/MenuItem/generatepdf/{menuType}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var pdf = await response.Content.ReadAsByteArrayAsync();
+                return File(pdf, "application/pdf", $"{menuType}_Menu.pdf");
             }
 
             return View("Error");
+        }
+
+        [HttpPost("generatepdf/{menuType}")]
+        public async Task<IActionResult> GenerateAndSavePdf(string menuType)
+        {
+            var client = _clientFactory.CreateClient();
+            var response = await client.GetAsync($"https://localhost:7213/api/MenuItem/generatepdf/{menuType}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return View("Error");
+            }
+
+            var pdfBytes = await response.Content.ReadAsByteArrayAsync();
+
+            var pdfDirectory = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/pdfs");
+            var pdfFileName = $"{menuType}_Menu.pdf";  // Overwrite with a consistent name
+            var filePath = Path.Combine(pdfDirectory, pdfFileName);
+
+            
+            if (!Directory.Exists(pdfDirectory))
+            {
+                Directory.CreateDirectory(pdfDirectory);
+            }
+
+            
+            await System.IO.File.WriteAllBytesAsync(filePath, pdfBytes);
+
+            
+            var pdfUrl = $"{Request.Scheme}://{Request.Host}/pdfs/{pdfFileName}";
+            return Ok(new { pdfUrl });
         }
     }
 }
