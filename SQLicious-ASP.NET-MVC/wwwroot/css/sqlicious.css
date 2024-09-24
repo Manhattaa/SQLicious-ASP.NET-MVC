@@ -1,14 +1,13 @@
 ﻿/* General styles for larger screens (default behavior) */
 .book-table-container {
     display: flex;
-    position: absolute; /* Absolute position for larger screens */
+    position: absolute;
     top: 25%;
     left: 75%;
     transform: translate(-50%, -50%);
     width: 350px;
     height: 280px;
     background-color: rgba(0, 0, 0, 0.6);
-    display: flex;
     border-radius: 5px;
     flex-direction: column;
     align-items: center;
@@ -18,32 +17,79 @@
     border: 2px solid white;
 }
 
+.nav-items {
+    display: flex;
+    flex-direction: row; /* Ensure the nav items are in a row */
+    gap: 20px; /* Add space between nav items */
+    justify-content: center; /* Center the nav items */
+    align-items: center; /* Vertically align the nav items */
+}
+
+.nav-links {
+    font-size: 16px;
+    color: black !important;
+    text-decoration: none;
+    padding: 10px;
+    transition: color 0.3s ease;
+}
+
+    .nav-links:hover {
+        color: #007BFF;
+        text-decoration: underline;
+    }
+
+.splash-image {
+    display: block; /* Ensure block display for proper sizing */
+    width: 100%;
+    height: auto;
+    border-radius: 50px; /* Ensure the border-radius is applied */
+    object-fit: cover; /* Maintain aspect ratio and fit within parent */
+}
+
 /* Responsive styles for tablets and smaller screens */
 @media (max-width: 768px) {
     .book-table-container {
-        position: static; /* Make it relative to normal flow on mobile */
-        margin-top: 20px; /* Add space between image and container */
-        width: 90%; /* Full width or 90% on smaller screens */
-        height: auto; /* Allow height to adjust automatically */
-        transform: none; /* Remove translate for mobile */
+        position: static;
+        margin-top: 20px;
+        width: 90%;
+        height: auto;
+        transform: none;
     }
 
     .book-table-header {
-        font-size: 1.2rem; /* Adjust font size for mobile */
+        font-size: 1.2rem;
         margin-bottom: 20px;
     }
 
     .book-table-button, .book-table-button2 {
-        font-size: 1rem; /* Smaller font size for mobile */
-        padding: 5px 10px; /* Reduce button padding */
+        font-size: 1rem;
+        padding: 5px 10px;
     }
 
     h2 {
-        font-size: 24px; /* Adjust h2 font size */
+        font-size: 24px;
     }
 
     h3 {
-        font-size: 18px; /* Adjust h3 font size */
+        font-size: 18px;
+    }
+
+    .nav-items {
+        display: flex;
+        flex-direction: row; 
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .nav-links {
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    .splash-image {
+        width: 100%; 
+        height: auto;
+        border-radius: 50px; 
     }
 }
 
@@ -51,12 +97,13 @@
     /* For smaller mobile devices */
     .book-table-container {
         display: flex;
-        justify-content:center;
+        justify-content: center;
         position: static;
         margin-top: 20px;
         width: 90%;
         padding: 10px;
-        background-color: rgba(240, 234, 214);
+        background-color: rgba(240, 234, 214, 0.8); 
+        border-radius: 10px;
     }
 
     .book-table-header {
@@ -83,14 +130,21 @@
         justify-content: center;
     }
 
-    .nav-items .nav-links {
+    .nav-items {
+        display: flex;
+        flex-direction: row; 
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .nav-links {
         font-size: 14px;
         color: black !important;
         text-decoration: none;
+        padding: 8px;
     }
 
     .splash-image {
-        display: flex;
         width: 90%;
         height: auto;
         border-radius: 50px;
