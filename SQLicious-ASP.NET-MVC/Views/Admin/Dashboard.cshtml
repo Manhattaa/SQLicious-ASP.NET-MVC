@@ -10,6 +10,15 @@
         <li class="nav-item">
             <a href="@Url.Action("AdminSettings", "Admin")" class="nav-link">Admin Settings</a>
         </li>
+        <li class="nav-item">
+            <a href="@Url.Action("Index", "Booking")" class="nav-link">Booking Settings</a>
+        </li>
+        <li class="nav-item">
+            <!-- Logout button -->
+            <form asp-action="Logout" asp-controller="Admin" method="post" style="display:inline;">
+                <button type="submit" class="btn btn-link nav-link" style="text-decoration: none;">Logout</button>
+            </form>
+        </li>
     </ul>
 </nav>
 
