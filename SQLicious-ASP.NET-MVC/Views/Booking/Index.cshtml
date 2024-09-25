@@ -1,0 +1,117 @@
+﻿@model PagedResult<SQLicious_ASP.NET_MVC.Models.DTOs.BookingDTO>
+@using SQLicious_ASP.NET_MVC.Helpers
+
+<nav class="admin-navbar">
+    <ul class="navbar-nav">
+        <li class="nav-item">
+            <a href="@Url.Action("MenuSettings", "MenuItem")" class="nav-link">Menu Settings</a>
+        </li>
+        <li class="nav-item">
+            <a href="@Url.Action("AdminSettings", "Admin")" class="nav-link">Admin Settings</a>
+        </li>
+        <li class="nav-item">
+            <a href="@Url.Action("Index", "Booking")" class="nav-link">Booking Settings</a>
+        </li>
+        <li class="nav-item">
+            <form asp-action="Logout" asp-controller="Admin" method="post" style="display:inline;">
+                <button type="submit" class="btn btn-link nav-link" style="text-decoration: none;">Logout</button>
+            </form>
+        </li>
+    </ul>
+</nav>
+
+<h2>Hantera Bokningar</h2>
+
+<!-- Search bar -->
+<form method="get" action="@Url.Action("Index", "Booking")">
+    <input type="text" name="searchString" class="form-control mb-4" placeholder="Sök bokning..." value="@ViewData["SearchString"]" />
+    <button type="submit" class="btn btn-primary">Search</button>
+</form>
+
+<!-- Booking Table -->
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>
+                <a href="@Url.Action("Index", new { sortOrder = ViewData["BookingIDSort"] })">BokningsID</a>
+            </th>
+            <th>
+                <a href="@Url.Action("Index", new { sortOrder = ViewData["NameSort"] })">Kundnamn</a>
+            </th>
+            <th>
+                <a href="@Url.Action("Index", new { sortOrder = ViewData["EmailSort"] })">Email</a>
+            </th>
+            <th>
+                <a href="@Url.Action("Index", new { sortOrder = ViewData["DateSort"] })">Datum & Tid</a>
+            </th>
+            <th>
+                <a href="@Url.Action("Index", new { sortOrder = ViewData["GuestsSort"] })">Antal gäster</a>
+            </th>
+            <th>
+                <a href="@Url.Action("Index", new { sortOrder = ViewData["TableSort"] })">Bordsnummer</a>
+            </th>
+            <th>Åtgärd</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var booking in Model.Results)
+        {
+            <!-- Display Row (initial view mode) -->
+            <tr id="view-row-@booking.BookingId">
+                <td>@booking.BookingId</td>
+                <td>@(booking.Customer != null ? $"{booking.Customer.FirstName} {booking.Customer.LastName}" : "No customer data")</td>
+                <td>@(booking.Customer != null ? booking.Customer.Email : "No email")</td>
+                <td>@booking.BookedDateTime.ToString("g")</td>
+                <td>@booking.AmountOfCustomers</td>
+                <td>@booking.TableId</td>
+                <td>
+                    <button class="btn btn-warning" onclick="toggleEdit(@booking.BookingId)">Edit</button>
+                    <form method="post" action="@Url.Action("Delete", "Booking", new { id = booking.BookingId })" style="display:inline;" onsubmit="return confirm('Är du säker på att du vill ta bort bokningen?');">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Pagination Controls -->
+<nav aria-label="Page navigation">
+    <ul class="pagination">
+        @if (Model.CurrentPage > 1)
+        {
+            <li class="page-item">
+                <a class="page-link" href="@Url.Action("Index", new { page = Model.CurrentPage - 1 })">Previous</a>
+            </li>
+        }
+
+        @for (int i = 1; i <= Model.TotalPages; i++)
+        {
+            <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                <a class="page-link" href="@Url.Action("Index", new { page = i })">@i</a>
+            </li>
+        }
+
+        @if (Model.CurrentPage < Model.TotalPages)
+        {
+            <li class="page-item">
+                <a class="page-link" href="@Url.Action("Index", new { page = Model.CurrentPage + 1 })">Next</a>
+            </li>
+        }
+    </ul>
+</nav>
+
+<script>
+    function toggleEdit(bookingId) {
+        var viewRow = document.getElementById("view-row-" + bookingId);
+        var editRow = document.getElementById("edit-row-" + bookingId);
+
+        if (viewRow.style.display === "none") {
+            viewRow.style.display = "";
+            editRow.style.display = "none";
+        } else {
+            viewRow.style.display = "none";
+            editRow.style.display = "";
+        }
+    }
+</script>

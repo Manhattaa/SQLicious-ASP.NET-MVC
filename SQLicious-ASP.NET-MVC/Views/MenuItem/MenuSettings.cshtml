@@ -1,5 +1,6 @@
 ﻿@using SQLicious_ASP.NET_MVC.Models.DTOs
 @model IEnumerable<MenuItemDTO>
+
 @{
     ViewData["Title"] = "MenuSettings";
 }
@@ -13,7 +14,9 @@
             <a href="@Url.Action("AdminSettings", "Admin")" class="nav-link">Admin Settings</a>
         </li>
         <li class="nav-item">
-            <!-- Logout button -->
+            <a href="@Url.Action("Index", "Booking")" class="nav-link">Booking Settings</a>
+        </li>
+        <li class="nav-item">
             <form asp-action="Logout" asp-controller="Admin" method="post" style="display:inline;">
                 <button type="submit" class="btn btn-link nav-link" style="text-decoration: none;">Logout</button>
             </form>
@@ -23,282 +26,88 @@
 
 <h2>Hantera Måltider</h2>
 
+<!-- Fun Filter Buttons -->
+<div class="fun-filter-buttons d-flex justify-content-center mb-4">
+    <button class="btn fun-button" onclick="filterMenu('All')">All</button>
+    <button class="btn fun-button" onclick="filterMenu('Frukost')">Frukost</button>
+    <button class="btn fun-button" onclick="filterMenu('Brunch')">Brunch</button>
+    <button class="btn fun-button" onclick="filterMenu('Lunch')">Lunch</button>
+    <button class="btn fun-button" onclick="filterMenu('Middag')">Middag</button>
+    <button class="btn fun-button" onclick="filterMenu('Julbord')">Julbord</button>
+</div>
+
+<!-- Spinner gif for PDF generation -->
+<div id="spinner" style="display:none; text-align: center;">
+    <img src="/assets/spinner.gif" alt="Loading..." />
+</div>
+<div id="confirmationMessage"></div>
+
 <!-- Button to create a new menu item -->
-<a href="@Url.Action("Create", "MenuItem")" class="btn btn-primary mb-4">Skapa en måltid</a>
+<a href="@Url.Action("Create", "MenuItem")" class="btn btn-meal mb-4">Skapa en måltid</a>
 
-<!-- Frukost Section -->
-<h3>Frukost</h3>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Namn</th>
-            <th>Beskrivning</th>
-            <th>Pris</th>
-            <th>Tillgängligt</th>
-            <th>Åtgärd</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model.Where(m => m.MenuType == MenuType.Frukost))
-        {
-            <!-- Display Row (initial view mode) -->
-            <tr id="view-row-@item.MenuItemId">
-                <td>@item.Name</td>
-                <td>@item.Description</td>
-                <td>@item.Price.ToString("C")</td>
-                <td>@item.IsAvailable</td>
-                <td>
-                    <button class="btn btn-warning" onclick="toggleEdit(@item.MenuItemId)">Edit</button>
-                    <form method="post" action="@Url.Action("Delete", "MenuItem", new { id = item.MenuItemId })" style="display:inline;">
-                        <button type="submit" class="btn btn-danger">Delete</button>
-                    </form>
-                </td>
-            </tr>
+<!-- Table Sections by MenuType -->
+@foreach (var menuType in Enum.GetValues(typeof(MenuType)))
+{
+    <div class="menu-section" data-menutype="@menuType">
+        <div class="d-flex justify-content-between align-items-center">
+            <h3 class="menu-section-title">@menuType</h3>
+            <!-- Generate Menu Button (moved to the right) -->
+            <button class="btn btn-secondary generate-btn" onclick="generatePdf('@menuType')">Generate @menuType Menu</button>
+        </div>
 
-            <!-- Edit Row (hidden by default) -->
-            <tr id="edit-row-@item.MenuItemId" style="display:none;">
-                <form method="post" action="@Url.Action("Edit", "MenuItem", new { id = item.MenuItemId })">
-                <td>
-                    <input type="text" name="Name" value="@item.Name" class="form-control" />
-                </td>
-                <td>
-                    <input type="text" name="Description" value="@item.Description" class="form-control" />
-                </td>
-                <td>
-                    <input type="number" step="0.01" name="Price" value="@item.Price" class="form-control" />
-                </td>
-                <td>
-                    <input type="checkbox" name="IsAvailable" class="form-check-input" @(item.IsAvailable ? "checked" : "") />
-                </td>
-                <td>
-                    <button type="submit" class="btn btn-success">Confirm</button>
-                    <button type="button" class="btn btn-secondary" onclick="toggleEdit(@item.MenuItemId)">Cancel</button>
-                </td>
-                </form>
-            </tr>
-        }
-    </tbody>
-</table>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Namn</th>
+                    <th>Beskrivning</th>
+                    <th>Pris</th>
+                    <th>Tillgängligt</th>
+                    <th>Åtgärd</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Where(m => m.MenuType == (MenuType)Enum.Parse(typeof(MenuType), menuType.ToString())))
+                {
+                    <!-- Display Row (initial view mode) -->
+                    <tr id="view-row-@item.MenuItemId">
+                        <td>@item.Name</td>
+                        <td>@item.Description</td>
+                        <td>@item.Price.ToString("C")</td>
+                        <td>@item.IsAvailable</td>
+                        <td>
+                            <button class="btn btn-warning" onclick="toggleEdit(@item.MenuItemId)">Edit</button>
+                            <form method="post" action="@Url.Action("Delete", "MenuItem", new { id = item.MenuItemId })" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this item?');">
+                                <button type="submit" class="btn btn-danger">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
 
-<!-- Brunch Section -->
-<h3>Brunch</h3>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Namn</th>
-            <th>Beskrivning</th>
-            <th>Pris</th>
-            <th>Tillgängligt</th>
-            <th>Åtgärd</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model.Where(m => m.MenuType == MenuType.Brunch))
-        {
-            <!-- Display Row (initial view mode) -->
-            <tr id="view-row-@item.MenuItemId">
-                <td>@item.Name</td>
-                <td>@item.Description</td>
-                <td>@item.Price.ToString("C")</td>
-                <td>@item.IsAvailable</td>
-                <td>
-                    <button class="btn btn-warning" onclick="toggleEdit(@item.MenuItemId)">Edit</button>
-                    <form method="post" action="@Url.Action("Delete", "MenuItem", new { id = item.MenuItemId })" style="display:inline;">
-                        <button type="submit" class="btn btn-danger">Delete</button>
-                    </form>
-                </td>
-            </tr>
-
-            <!-- Edit Row (hidden by default) -->
-            <tr id="edit-row-@item.MenuItemId" style="display:none;">
-                <form method="post" action="@Url.Action("Edit", "MenuItem", new { id = item.MenuItemId })">
-                <td>
-                    <input type="text" name="Name" value="@item.Name" class="form-control" />
-                </td>
-                <td>
-                    <input type="text" name="Description" value="@item.Description" class="form-control" />
-                </td>
-                <td>
-                    <input type="number" step="0.01" name="Price" value="@item.Price" class="form-control" />
-                </td>
-                <td>
-                    <input type="checkbox" name="IsAvailable" class="form-check-input" @(item.IsAvailable ? "checked" : "") />
-                </td>
-                <td>
-                    <button type="submit" class="btn btn-success">Confirm</button>
-                    <button type="button" class="btn btn-secondary" onclick="toggleEdit(@item.MenuItemId)">Cancel</button>
-                </td>
-                </form>
-            </tr>
-        }
-    </tbody>
-</table>
-
-
-<!-- Lunch Section -->
-<h3>Lunch</h3>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Namn</th>
-            <th>Beskrivning</th>
-            <th>Pris</th>
-            <th>Tillgängligt</th>
-            <th>Åtgärd</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model.Where(m => m.MenuType == MenuType.Lunch))
-        {
-            <!-- Display Row (initial view mode) -->
-            <tr id="view-row-@item.MenuItemId">
-                <td>@item.Name</td>
-                <td>@item.Description</td>
-                <td>@item.Price.ToString("C")</td>
-                <td>@item.IsAvailable</td>
-                <td>
-                    <button class="btn btn-warning" onclick="toggleEdit(@item.MenuItemId)">Edit</button>
-                    <form method="post" action="@Url.Action("Delete", "MenuItem", new { id = item.MenuItemId })" style="display:inline;">
-                        <button type="submit" class="btn btn-danger">Delete</button>
-                    </form>
-                </td>
-            </tr>
-
-            <!-- Edit Row (hidden by default) -->
-            <tr id="edit-row-@item.MenuItemId" style="display:none;">
-                <form method="post" action="@Url.Action("Edit", "MenuItem", new { id = item.MenuItemId })">
-                <td>
-                    <input type="text" name="Name" value="@item.Name" class="form-control" />
-                </td>
-                <td>
-                    <input type="text" name="Description" value="@item.Description" class="form-control" />
-                </td>
-                <td>
-                    <input type="number" step="0.01" name="Price" value="@item.Price" class="form-control" />
-                </td>
-                <td>
-                    <input type="checkbox" name="IsAvailable" class="form-check-input" @(item.IsAvailable ? "checked" : "") />
-                </td>
-                <td>
-                    <button type="submit" class="btn btn-success">Confirm</button>
-                    <button type="button" class="btn btn-secondary" onclick="toggleEdit(@item.MenuItemId)">Cancel</button>
-                </td>
-                </form>
-            </tr>
-        }
-    </tbody>
-</table>
-
-
-<!-- Middag Section -->
-<h3>Middag</h3>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Namn</th>
-            <th>Beskrivning</th>
-            <th>Pris</th>
-            <th>Tillgängligt</th>
-            <th>Åtgärd</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model.Where(m => m.MenuType == MenuType.Middag))
-        {
-            <!-- Display Row (initial view mode) -->
-            <tr id="view-row-@item.MenuItemId">
-                <td>@item.Name</td>
-                <td>@item.Description</td>
-                <td>@item.Price.ToString("C")</td>
-                <td>@item.IsAvailable</td>
-                <td>
-                    <button class="btn btn-warning" onclick="toggleEdit(@item.MenuItemId)">Edit</button>
-                    <form method="post" action="@Url.Action("Delete", "MenuItem", new { id = item.MenuItemId })" style="display:inline;">
-                        <button type="submit" class="btn btn-danger">Delete</button>
-                    </form>
-                </td>
-            </tr>
-
-            <!-- Edit Row (hidden by default) -->
-            <tr id="edit-row-@item.MenuItemId" style="display:none;">
-                <form method="post" action="@Url.Action("Edit", "MenuItem", new { id = item.MenuItemId })">
-                <td>
-                    <input type="text" name="Name" value="@item.Name" class="form-control" />
-                </td>
-                <td>
-                    <input type="text" name="Description" value="@item.Description" class="form-control" />
-                </td>
-                <td>
-                    <input type="number" step="0.01" name="Price" value="@item.Price" class="form-control" />
-                </td>
-                <td>
-                    <input type="checkbox" name="IsAvailable" class="form-check-input" @(item.IsAvailable ? "checked" : "") />
-                </td>
-                <td>
-                    <button type="submit" class="btn btn-success">Confirm</button>
-                    <button type="button" class="btn btn-secondary" onclick="toggleEdit(@item.MenuItemId)">Cancel</button>
-                </td>
-                </form>
-            </tr>
-        }
-    </tbody>
-</table>
-
-
-<!-- Julbord Section -->
-<h3>Julbord</h3>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Namn</th>
-            <th>Beskrivning</th>
-            <th>Pris</th>
-            <th>Tillgängligt</th>
-            <th>Åtgärd</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model.Where(m => m.MenuType == MenuType.Julbord))
-        {
-            <!-- Display Row (initial view mode) -->
-            <tr id="view-row-@item.MenuItemId">
-                <td>@item.Name</td>
-                <td>@item.Description</td>
-                <td>@item.Price.ToString("C")</td>
-                <td>@item.IsAvailable</td>
-                <td>
-                    <button class="btn btn-warning" onclick="toggleEdit(@item.MenuItemId)">Edit</button>
-                    <form method="post" action="@Url.Action("Delete", "MenuItem", new { id = item.MenuItemId })" style="display:inline;">
-                        <button type="submit" class="btn btn-danger">Delete</button>
-                    </form>
-                </td>
-            </tr>
-
-            <!-- Edit Row (hidden by default) -->
-            <tr id="edit-row-@item.MenuItemId" style="display:none;">
-                <form method="post" action="@Url.Action("Edit", "MenuItem", new { id = item.MenuItemId })">
-                <td>
-                    <input type="text" name="Name" value="@item.Name" class="form-control" />
-                </td>
-                <td>
-                    <input type="text" name="Description" value="@item.Description" class="form-control" />
-                </td>
-                <td>
-                    <input type="number" step="0.01" name="Price" value="@item.Price" class="form-control" />
-                </td>
-                <td>
-                    <input type="checkbox" name="IsAvailable" class="form-check-input" @(item.IsAvailable ? "checked" : "") />
-                </td>
-                <td>
-                    <button type="submit" class="btn btn-success">Confirm</button>
-                    <button type="button" class="btn btn-secondary" onclick="toggleEdit(@item.MenuItemId)">Cancel</button>
-                </td>
-                </form>
-            </tr>
-        }
-    </tbody>
-</table>
-
+                    <!-- Edit Row (hidden by default) -->
+                    <tr id="edit-row-@item.MenuItemId" style="display:none;">
+                        <form method="post" action="@Url.Action("Edit", "MenuItem", new { id = item.MenuItemId })">
+                        <td>
+                            <input type="text" name="Name" value="@item.Name" class="form-control" />
+                        </td>
+                        <td>
+                            <input type="text" name="Description" value="@item.Description" class="form-control" />
+                        </td>
+                        <td>
+                            <input type="number" step="0.01" name="Price" value="@item.Price" class="form-control" />
+                        </td>
+                        <td>
+                            <input type="checkbox" name="IsAvailable" class="form-check-input" @(item.IsAvailable ? "checked" : "") />
+                        </td>
+                        <td>
+                            <button type="submit" class="btn btn-success">Confirm</button>
+                            <button type="button" class="btn btn-secondary" onclick="toggleEdit(@item.MenuItemId)">Cancel</button>
+                        </td>
+                        </form>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
 
 <script>
     function toggleEdit(itemId) {
@@ -312,5 +121,47 @@
             viewRow.style.display = "none";
             editRow.style.display = "";
         }
+    }
+
+    fetch(`/api/MenuItem/generatepdf/${menuType}`, {
+        method: 'POST'
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data && data.pdfUrl) {
+                document.getElementById("spinner").style.display = "none";
+                document.getElementById("confirmationMessage").innerHTML = `
+                <div class="alert alert-success">
+                    PDF for ${menuType} generated successfully! <a href="${data.pdfUrl}" target="_blank">View PDF</a>
+                </div>`;
+            } else {
+                throw new Error("Failed to generate PDF.");
+            }
+        })
+        .catch(error => {
+            document.getElementById("spinner").style.display = "none";
+            document.getElementById("confirmationMessage").innerHTML = `
+            <div class="alert alert-danger">Failed to generate PDF for ${menuType}</div>`;
+            console.error(error);
+        });
+
+
+    function filterMenu(menuType) {
+        var sections = document.querySelectorAll(".menu-section");
+
+        sections.forEach(function (section) {
+            var sectionMenuType = section.getAttribute('data-menutype');
+
+            if (menuType === 'All' || sectionMenuType === menuType) {
+                section.style.display = "block";
+            } else {
+                section.style.display = "none";
+            }
+        });
     }
 </script>

@@ -1,0 +1,60 @@
+﻿.fun-button {
+    background-color: lightcoral;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    margin: 0 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+    border-radius: 5px;
+}
+
+    .fun-button:hover {
+        background-color: #00fa9a;
+        transform: scale(1.05);
+    }
+
+.generate-btn {
+    margin-right: 20px;
+    background-color: lightgreen;
+}
+
+.menu-section-title {
+    margin-top: 40px;
+    text-align: left;
+}
+
+.btn-meal {
+    color: #fff;
+    background-color: darkorange;
+    border-color: orangered;
+}
+
+    .btn-meal:hover {
+        color: #fff;
+        background-color: darkorange;
+        border-color: orangered;
+    }
+
+    .btn-check:focus + .btn-meal, .btn-meal:focus {
+        color: #fff;
+        background-color: darkorange;
+        border-color: orangered;
+        box-shadow: 0 0 0 0.25rem rgba(49, 132, 253, 0.5);
+    }
+
+    .btn-check:checked + .btn-meal, .btn-check:active + .btn-meal, .btn-meal:active, .btn-meal.active, .show > .btn-meal.dropdown-toggle {
+        color: #fff;
+        background-color: darkorange;
+        border-color: orangered;
+    }
+
+        .btn-check:checked + .btn-meal:focus, .btn-check:active + .btn-meal:focus, .btn-meal:active:focus, .btn-meal.active:focus, .show > .btn-meal.dropdown-toggle:focus {
+            box-shadow: 0 0 0 0.25rem rgba(49, 132, 253, 0.5);
+        }
+    .btn-meal:disabled, .btn-meal.disabled {
+        color: #fff;
+        background-color: darkorange;
+        border-color: orangered;
+    }
