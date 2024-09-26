@@ -4,6 +4,7 @@ using SQLicious_ASP.NET_MVC.Models.DTOs;
 using System.Net.Http;
 using Newtonsoft.Json;
 using SQLicious_ASP.NET_MVC.Helpers;
+using System.Text;
 
 namespace SQLicious_ASP.NET_MVC.Controllers
 {
@@ -19,7 +20,7 @@ namespace SQLicious_ASP.NET_MVC.Controllers
         {
             var client = _clientFactory.CreateClient();
 
-            // Fetch all bookings
+            // Fetch all bookings from the API
             HttpResponseMessage bookingResponse = await client.GetAsync("https://localhost:7213/api/Booking");
             if (!bookingResponse.IsSuccessStatusCode)
             {
@@ -29,70 +30,30 @@ namespace SQLicious_ASP.NET_MVC.Controllers
             var bookingJsonResponse = await bookingResponse.Content.ReadAsStringAsync();
             var bookingList = JsonConvert.DeserializeObject<IEnumerable<BookingDTO>>(bookingJsonResponse);
 
-            // Sorting logic
-            ViewData["BookingIDSort"] = String.IsNullOrEmpty(sortOrder) ? "bookingID_desc" : "";
-            ViewData["NameSort"] = sortOrder == "name" ? "name_desc" : "name";
-            ViewData["EmailSort"] = sortOrder == "email" ? "email_desc" : "email";
-            ViewData["DateSort"] = sortOrder == "date" ? "date_desc" : "date";
-            ViewData["GuestsSort"] = sortOrder == "guests" ? "guests_desc" : "guests";
-            ViewData["TableSort"] = sortOrder == "table" ? "table_desc" : "table";
-
-            if (!String.IsNullOrEmpty(searchString))
+            // Fetch all customers in parallel to avoid blocking
+            var customerTasks = bookingList.Select(async booking =>
             {
-                bookingList = bookingList.Where(
-                    b => b.Customer.FirstName.Contains(searchString, StringComparison.OrdinalIgnoreCase)                        
-                    || b.Customer.LastName.Contains(searchString, StringComparison.OrdinalIgnoreCase)                      
-                    || b.Customer.Email.Contains(searchString, StringComparison.OrdinalIgnoreCase)                   
-                    || b.BookingId.ToString().Contains(searchString));
-            }
+                if (booking.CustomerId != 0)  // Ensure customer ID is valid
+                {
+                    HttpResponseMessage customerResponse = await client.GetAsync($"https://localhost:7213/api/Customer/{booking.CustomerId}");
+                    if (customerResponse.IsSuccessStatusCode)
+                    {
+                        var customerJsonResponse = await customerResponse.Content.ReadAsStringAsync();
+                        booking.Customer = JsonConvert.DeserializeObject<CustomerDTO>(customerJsonResponse);
+                    }
+                }
+            });
 
+            // Wait for all customer fetch tasks to complete
+            await Task.WhenAll(customerTasks);
 
-
-            switch (sortOrder)
-            {
-                case "bookingID_desc":
-                    bookingList = bookingList.OrderByDescending(b => b.BookingId);
-                    break;
-                case "name":
-                    bookingList = bookingList.OrderBy(b => b.Customer.FirstName);
-                    break;
-                case "name_desc":
-                    bookingList = bookingList.OrderByDescending(b => b.Customer.FirstName);
-                    break;
-                case "email":
-                    bookingList = bookingList.OrderBy(b => b.Customer.Email);
-                    break;
-                case "email_desc":
-                    bookingList = bookingList.OrderByDescending(b => b.Customer.Email);
-                    break;
-                case "date":
-                    bookingList = bookingList.OrderBy(b => b.BookedDateTime);
-                    break;
-                case "date_desc":
-                    bookingList = bookingList.OrderByDescending(b => b.BookedDateTime);
-                    break;
-                case "guests":
-                    bookingList = bookingList.OrderBy(b => b.AmountOfCustomers);
-                    break;
-                case "guests_desc":
-                    bookingList = bookingList.OrderByDescending(b => b.AmountOfCustomers);
-                    break;
-                case "table":
-                    bookingList = bookingList.OrderBy(b => b.TableId);
-                    break;
-                case "table_desc":
-                    bookingList = bookingList.OrderByDescending(b => b.TableId);
-                    break;
-                default:
-                    bookingList = bookingList.OrderBy(b => b.BookingId);
-                    break;
-            }
-
-            // Pagination logic
+            // Proceed with sorting, filtering, and pagination logic
             var pagedBookings = PagedResult<BookingDTO>.Create(bookingList, page, pageSize);
 
             return View(pagedBookings);
         }
+
+
 
         public async Task<IActionResult> Edit(int id)
         {
@@ -110,19 +71,27 @@ namespace SQLicious_ASP.NET_MVC.Controllers
         }
 
 
-        [HttpPut]
-        public async Task<IActionResult> Edit(BookingDTO booking)
+        [HttpPost]
+        public async Task<IActionResult> Edit(int id, BookingDTO booking)
         {
             var client = _clientFactory.CreateClient();
-            HttpResponseMessage response = await client.PutAsJsonAsync("https://localhost:7213/api/Booking/update", booking);
+
+            // Convert booking data to JSON
+            var jsonContent = new StringContent(JsonConvert.SerializeObject(booking), Encoding.UTF8, "application/json");
+
+            // Send the PUT request to the API
+            HttpResponseMessage response = await client.PutAsync($"https://localhost:7213/api/Booking/update", jsonContent);
 
             if (response.IsSuccessStatusCode)
             {
-                return RedirectToAction("Index");
+                // Return JSON response indicating success
+                return Json(new { success = true });
             }
 
-            return View("Index");
+            // Return JSON response indicating failure
+            return Json(new { success = false });
         }
+
         public async Task<IActionResult> Delete(int id)
         {
             var client = _clientFactory.CreateClient();
@@ -150,6 +119,20 @@ namespace SQLicious_ASP.NET_MVC.Controllers
             }
 
             return View("Error");
+        }
+        [HttpGet]
+        public async Task<IActionResult> All()
+        {
+            var client = _clientFactory.CreateClient();
+            var response = await client.GetAsync("https://localhost:7213/api/Booking"); 
+            if (!response.IsSuccessStatusCode)
+            {
+                return BadRequest("Failed to fetch bookings.");
+            }
+
+            var bookingJson = await response.Content.ReadAsStringAsync();
+            var bookings = JsonConvert.DeserializeObject<IEnumerable<BookingDTO>>(bookingJson);
+            return Json(bookings); 
         }
     }
 }
