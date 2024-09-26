@@ -1,0 +1,24 @@
+﻿@using SQLicious_ASP.NET_MVC.Models.DTOs
+@model TwoFactorAuthDTO
+
+<h2>Aktivera 2FA!</h2>
+
+<div>
+    <p>Skanna QR koden nedan med din Autentisierings app.</p>
+    <img class="qr-container" src="@Url.Action("GenerateQrCode", "TwoFactorAuth")" alt="QR Code" />
+
+    <form asp-action="Verify2FA" method="post">
+        <div>
+            <label for="code">Skriv gärna in koden från din autentisierings app här nedan!</label>
+            <input type="text" id="code" name="code" class="form-control" required />
+        </div>
+        <button type="submit" class="btn btn-primary">Verifiera</button>
+    </form>
+</div>
+
+<style>
+    .qr-container {
+        width: 200px;
+        height: 200px;
+    }
+</style>
