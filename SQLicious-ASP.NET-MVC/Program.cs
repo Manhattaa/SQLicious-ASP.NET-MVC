@@ -14,6 +14,10 @@ public class Program
 
         builder.Services.AddHttpClient();
         // Add Controllers and Razor Pages
+        builder.Services.AddHttpClient("APIClient", client =>
+        {
+            client.BaseAddress = new Uri("https://localhost:7213/");
+        });
         builder.Services.AddControllersWithViews();
         builder.Services.AddRazorPages();
 
