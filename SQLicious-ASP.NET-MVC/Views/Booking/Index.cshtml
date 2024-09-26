@@ -23,40 +23,24 @@
 <h2>Hantera Bokningar</h2>
 
 <!-- Search bar -->
-<form method="get" action="@Url.Action("Index", "Booking")">
-    <input type="text" name="searchString" class="form-control mb-4" placeholder="Sök bokning..." value="@ViewData["SearchString"]" />
-    <button type="submit" class="btn btn-primary">Search</button>
-</form>
+<input type="text" id="searchInput" class="form-control mb-4" placeholder="Sök bokning..." />
 
 <!-- Booking Table -->
 <table class="table table-bordered table-striped">
     <thead>
         <tr>
-            <th>
-                <a href="@Url.Action("Index", new { sortOrder = ViewData["BookingIDSort"] })">BokningsID</a>
-            </th>
-            <th>
-                <a href="@Url.Action("Index", new { sortOrder = ViewData["NameSort"] })">Kundnamn</a>
-            </th>
-            <th>
-                <a href="@Url.Action("Index", new { sortOrder = ViewData["EmailSort"] })">Email</a>
-            </th>
-            <th>
-                <a href="@Url.Action("Index", new { sortOrder = ViewData["DateSort"] })">Datum & Tid</a>
-            </th>
-            <th>
-                <a href="@Url.Action("Index", new { sortOrder = ViewData["GuestsSort"] })">Antal gäster</a>
-            </th>
-            <th>
-                <a href="@Url.Action("Index", new { sortOrder = ViewData["TableSort"] })">Bordsnummer</a>
-            </th>
+            <th>BokningsID</th>
+            <th>Kundnamn</th>
+            <th>Email</th>
+            <th>Datum & Tid</th>
+            <th>Antal gäster</th>
+            <th>Bordsnummer</th>
             <th>Åtgärd</th>
         </tr>
     </thead>
-    <tbody>
+    <tbody id="bookingTableBody">
         @foreach (var booking in Model.Results)
         {
-            <!-- Display Row (initial view mode) -->
             <tr id="view-row-@booking.BookingId">
                 <td>@booking.BookingId</td>
                 <td>@(booking.Customer != null ? $"{booking.Customer.FirstName} {booking.Customer.LastName}" : "No customer data")</td>
@@ -71,12 +55,41 @@
                     </form>
                 </td>
             </tr>
+
+            <!-- Edit Row (hidden by default) -->
+            <tr id="edit-row-@booking.BookingId" style="display:none;">
+                <form method="post" action="@Url.Action("Edit", "Booking", new { id = booking.BookingId })">
+                <td>@booking.BookingId</td>
+                <td>
+                    <input type="text" name="Customer.FirstName" value="@booking.Customer?.FirstName" class="form-control" placeholder="First Name" />
+                </td>
+                    <td>
+                    <input type="text" name="Customer.LastName" value="@booking.Customer?.LastName" class="form-control" placeholder="Last Name" />
+                </td>
+                <td>
+                    <input type="email" name="Customer.Email" value="@booking.Customer?.Email" class="form-control" placeholder="Email" />
+                </td>
+                <td>
+                    <input type="datetime-local" name="BookedDateTime" value="@booking.BookedDateTime.ToString("yyyy-MM-ddTHH:mm")" class="form-control" />
+                </td>
+                <td>
+                    <input type="number" name="AmountOfCustomers" value="@booking.AmountOfCustomers" class="form-control" />
+                </td>
+                <td>
+                    <input type="number" name="TableId" value="@booking.TableId" class="form-control" />
+                </td>
+                <td>
+                    <button type="submit" class="btn btn-success">Confirm</button>
+                    <button type="button" class="btn btn-secondary" onclick="toggleEdit(@booking.BookingId)">Cancel</button>
+                </td>
+                </form>
+            </tr>
         }
     </tbody>
 </table>
 
-<!-- Pagination Controls -->
-<nav aria-label="Page navigation">
+<!-- Pagination Controls (optional, remove or keep for non-search case) -->
+<nav aria-label="Page navigation" id="paginationControls">
     <ul class="pagination">
         @if (Model.CurrentPage > 1)
         {
@@ -101,7 +114,65 @@
     </ul>
 </nav>
 
+<!-- JavaScript to Manage Search and Toggle Rows -->
 <script>
+    var allBookings = [];  // Store all bookings
+
+    // Fetch all bookings and store them
+    window.onload = async function () {
+        const response = await fetch('/Booking/All');  // Fetch from the API
+        allBookings = await response.json();
+
+        // Check if customer data is fetched properly
+        console.log(allBookings); // Debugging: Check the structure of fetched data
+    };
+
+    // Filter bookings on input
+    document.getElementById('searchInput').addEventListener('input', function () {
+        var searchString = this.value.toLowerCase();
+        var tableBody = document.getElementById('bookingTableBody');
+
+        // Clear current rows
+        tableBody.innerHTML = '';
+
+        // Filter through all bookings
+        var filteredBookings = allBookings.filter(booking => {
+            var bookingId = booking.bookingId.toString().toLowerCase();
+            var customerName = (booking.customer?.firstName + ' ' + booking.customer?.lastName).toLowerCase();
+            var email = booking.customer?.email.toLowerCase();
+            var dateTime = new Date(booking.bookedDateTime).toLocaleString().toLowerCase();
+            var guests = booking.amountOfCustomers.toString().toLowerCase();
+            var tableId = booking.tableId.toString().toLowerCase();
+
+            return bookingId.includes(searchString) || customerName.includes(searchString) || email.includes(searchString) || dateTime.includes(searchString) || guests.includes(searchString) || tableId.includes(searchString);
+        });
+
+        // Render filtered bookings
+        filteredBookings.forEach(booking => {
+            tableBody.innerHTML += `
+                <tr id="view-row-${booking.bookingId}">
+                    <td>${booking.bookingId}</td>
+                    <td>${booking.customer?.firstName || 'No customer data'} ${booking.customer?.lastName || ''}</td>
+                    <td>${booking.customer?.email || 'No email'}</td>
+                    <td>${new Date(booking.bookedDateTime).toLocaleString()}</td>
+                    <td>${booking.amountOfCustomers}</td>
+                    <td>${booking.tableId}</td>
+                    <td>
+                        <button class="btn btn-warning" onclick="toggleEdit(${booking.bookingId})">Edit</button>
+                        <form method="post" action="/Booking/Delete/${booking.bookingId}" style="display:inline;" onsubmit="return confirm('Är du säker på att du vill ta bort bokningen?');">
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            `;
+        });
+
+        // Hide pagination controls when searching
+        document.getElementById('paginationControls').style.display = searchString ? 'none' : '';
+    });
+
+
+    // Function to toggle between view and edit rows
     function toggleEdit(bookingId) {
         var viewRow = document.getElementById("view-row-" + bookingId);
         var editRow = document.getElementById("edit-row-" + bookingId);

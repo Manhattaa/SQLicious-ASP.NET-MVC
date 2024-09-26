@@ -21,3 +21,27 @@
         </li>
     </ul>
 </nav>
+
+<div class="d-flex justify-content-between">
+    <div>
+        <h3>Account Management</h3>
+        <a href="@Url.Action("Enable2FA", "TwoFactorAuth")" class="btn btn-warning mb-4">Enable Two-Factor Authentication</a>
+        <a href="@Url.Action("ChangePassword", "Admin")" class="btn btn-primary mb-4">Change Password</a>
+    </div>
+
+    <div id="statisticsSection" class="ml-4" style="min-width: 200px;">
+        <h3>Booking Statistics</h3>
+        <div id="statisticsDisplay"></div>
+    </div>
+</div>
+
+<script>
+    // Automatically fetch and display booking statistics
+    async function fetchStatistics() {
+        const response = await fetch('/api/Admin/BookingStatistics');
+        const data = await response.json();
+        document.getElementById('statisticsDisplay').innerText = `Total Bookings: ${data.totalBookings}`;
+    }
+
+    fetchStatistics();  // Call the function on page load to display stats
+</script>

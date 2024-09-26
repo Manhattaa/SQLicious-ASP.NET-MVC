@@ -94,10 +94,9 @@ namespace SQLicious_ASP.NET_MVC.Controllers
             return View("Error");
         }
 
-        [HttpPut("edit/{id}")]
-        public async Task<IActionResult> Edit([FromForm] int id, MenuItemDTO menuItemDto)
+        [HttpPost("edit/{id}")]
+        public async Task<IActionResult> Edit(int id, MenuItemDTO menuItemDto)
         {
-
             var client = _clientFactory.CreateClient();
             var jsonContent = new StringContent(JsonConvert.SerializeObject(menuItemDto), Encoding.UTF8, "application/json");
 
@@ -110,6 +109,7 @@ namespace SQLicious_ASP.NET_MVC.Controllers
 
             return View(menuItemDto);
         }
+
 
 
 
