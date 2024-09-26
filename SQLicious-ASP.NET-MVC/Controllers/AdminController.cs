@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Text.Json.Nodes;
 using Newtonsoft.Json.Linq;
 using Microsoft.AspNetCore.Authentication;
+using SQLicious_ASP.NET_MVC.Models.DTOs;
 
 namespace SQLicious_ASP.NET_MVC.Controllers
 {
@@ -94,5 +95,43 @@ namespace SQLicious_ASP.NET_MVC.Controllers
             ViewBag.Message = "Logged out successfully.";
             return RedirectToAction("SQLicious", "Home");
         }
+
+        [HttpPost("changepassword")]
+        public async Task<IActionResult> ChangePassword(string currentPassword, string newPassword, string confirmPassword)
+        {
+            var client = _clientFactory.CreateClient();
+
+            var passwordData = new { currentPassword, newPassword, confirmPassword };
+            var content = new StringContent(JsonConvert.SerializeObject(passwordData), Encoding.UTF8, "application/json");
+
+            var response = await client.PostAsync("https://localhost:7213/api/Admin/ChangePassword", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                ViewBag.Message = "Password changed successfully!";
+            }
+            else
+            {
+                ViewBag.Message = "Password change failed!";
+            }
+
+            return View("AdminSettings");
+        }
+        [HttpGet]
+        public async Task<IActionResult> AllAdmins()
+        {
+            var client = _clientFactory.CreateClient();
+            var response = await client.GetAsync("https://localhost:7213/api/Admin");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                ViewBag.Message = "Failed to fetch admin accounts.";
+                return View("AdminSettings");
+            }
+
+            var admins = JsonConvert.DeserializeObject<IEnumerable<AdminDTO>>(await response.Content.ReadAsStringAsync());
+            return View("AdminSettings", admins);
+        }
+
     }
 }
