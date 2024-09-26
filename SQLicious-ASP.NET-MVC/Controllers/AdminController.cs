@@ -46,6 +46,8 @@ namespace SQLicious_ASP.NET_MVC.Controllers
         //    return RedirectToAction("Dashboard", "Admin");
         //}
 
+        
+
         [HttpGet("login")]
         public async Task<IActionResult> Login(string email, string password)
         {
@@ -68,7 +70,7 @@ namespace SQLicious_ASP.NET_MVC.Controllers
                 var jsonObject = JObject.Parse(result);
                 string token = jsonObject["token"].ToString();
                 //var token = JsonConvert.DeserializeObject<dynamic>(result)?.Token;
-
+                string Message = jsonObject["message"].ToString();
                 if (token != null)
                 {
                     // Store the JWT token in a cookie
@@ -78,14 +80,27 @@ namespace SQLicious_ASP.NET_MVC.Controllers
                         Secure = true,
                         Expires = DateTimeOffset.UtcNow.AddHours(1)
                     });
-
-                    ViewBag.Message = "Login Successful!";
+                    if (Message == "The Admin account needs to have Two Factor Authentication.")
+                    {
+                        ViewBag.Message = "2FA works!!!";
+                    }
+                    else
+                    {
+                        ViewBag.Message = "Login Successful!";
+                    }
                     return RedirectToAction("Dashboard", "Admin");
                 }
+                else return Ok();
             }
+            else { return RedirectToAction("LoginWith2FA", "Admin"); }
 
-            ViewBag.Message = "Login failed! Please try again.";
-            return View("Index");
+            
+        }
+        [HttpGet]
+        public async Task<IActionResult> LoginWith2FA()
+        {
+            var model = new LoginWith2FADTO();
+            return View(model);
         }
 
         [HttpPost]
@@ -117,21 +132,21 @@ namespace SQLicious_ASP.NET_MVC.Controllers
 
             return View("AdminSettings");
         }
-        [HttpGet]
-        public async Task<IActionResult> AllAdmins()
-        {
-            var client = _clientFactory.CreateClient();
-            var response = await client.GetAsync("https://localhost:7213/api/Admin");
+        //[HttpGet]
+        //public async Task<IActionResult> AllAdmins()
+        //{
+        //    var client = _clientFactory.CreateClient();
+        //    var response = await client.GetAsync("https://localhost:7213/api/Admin");
 
-            if (!response.IsSuccessStatusCode)
-            {
-                ViewBag.Message = "Failed to fetch admin accounts.";
-                return View("AdminSettings");
-            }
+        //    if (!response.IsSuccessStatusCode)
+        //    {
+        //        ViewBag.Message = "Failed to fetch admin accounts.";
+        //        return View("AdminSettings");
+        //    }
 
-            var admins = JsonConvert.DeserializeObject<IEnumerable<AdminDTO>>(await response.Content.ReadAsStringAsync());
-            return View("AdminSettings", admins);
-        }
+        //    var admins = JsonConvert.DeserializeObject<IEnumerable<AdminDTO>>(await response.Content.ReadAsStringAsync());
+        //    return View("AdminSettings", admins);
+        //}
 
     }
 }
