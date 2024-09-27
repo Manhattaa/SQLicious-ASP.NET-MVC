@@ -5,7 +5,7 @@
 
 <div>
     <p>Skanna QR koden nedan med din Autentisierings app.</p>
-    <img class="qr-container" src="@Url.Action("GenerateQrCode", "TwoFactorAuth")" alt="QR Code" />
+    <img id="qr-code" class="qr-container" src="@Url.Action("GenerateQrCode", "TwoFactorAuth")" alt="QR Code" />
 
     <form asp-action="Verify2FA" method="post">
         <div>
@@ -22,3 +22,26 @@
         height: 200px;
     }
 </style>
+
+<script>
+    let countdown = 30;
+
+    //refresh QR Code
+    function refreshQRCode() {
+        const qrImage = document.getElementById('qr-code');
+        qrImage.src = '@Url.Action("GenerateQRCode", "TwoFactorAuth")' + '?' + new Date().getTime();
+        countdownTime = 30; //this is to reset timer back to 30s
+    }
+
+    function updateTimer() {
+        const timerElement = document.getElementById('timer');
+        countdownTime--;
+        timerElement.textContent = countdownTime;
+
+        if (countdownTime <= 0) {
+            refreshQRCode();
+        }
+    }
+    //set interval to refresh the qr every 30 seconds
+    setInterval(updateTimer, 1000); //update the timer every second!
+</script>

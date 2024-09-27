@@ -38,7 +38,7 @@
 
 <!-- Spinner gif for PDF generation -->
 <div id="spinner" style="display:none; text-align: center;">
-    <img src="/assets/spinner.gif" alt="Loading..." />
+    <img class="spinner-container" src="/assets/spinner.gif" alt="Loading..." />
 </div>
 <div id="confirmationMessage"></div>
 
@@ -172,3 +172,9 @@
         });
     }
 </script>
+
+    <style>
+        .spinner-container {
+            border-radius: 20px;
+        }
+    </style>
