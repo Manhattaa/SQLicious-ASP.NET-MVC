@@ -55,19 +55,16 @@ namespace SQLicious_ASP.NET_MVC.Controllers
                 { "password", password }
             };
 
-            // No need to serialize to JSON; send as form data
             var client = _clientFactory.CreateClient();
             var content = new FormUrlEncodedContent(loginData);
 
-            // Send form-encoded data
             var response = await client.PostAsync("https://localhost:7213/api/Admin/Login", content);
 
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsStringAsync();
                 var jsonObject = JObject.Parse(result);
-                string token = jsonObject["token"].ToString();
-                //var token = JsonConvert.DeserializeObject<dynamic>(result)?.Token;
+                string token = jsonObject["token"]?.ToString();
 
                 if (token != null)
                 {
@@ -87,6 +84,7 @@ namespace SQLicious_ASP.NET_MVC.Controllers
             ViewBag.Message = "Login failed! Please try again.";
             return View("Index");
         }
+
 
         [HttpPost]
         public async Task<IActionResult> Logout()
