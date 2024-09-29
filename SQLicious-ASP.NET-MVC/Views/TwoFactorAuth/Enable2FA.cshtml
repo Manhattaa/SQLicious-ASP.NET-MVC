@@ -4,16 +4,20 @@
 <h2>Aktivera 2FA!</h2>
 
 <div>
-    <p>Skanna QR koden nedan med din Autentisierings app.</p>
-    <img id="qr-code" class="qr-container" src="@Url.Action("GenerateQrCode", "TwoFactorAuth")" alt="QR Code" />
+    <p>Skanna QR-koden nedan med din autentiseringsapp.</p>
+    <img id="qr-code" class="qr-container" src="@Url.Action("GenerateQrCode", "TwoFactorAuth")" />
 
-    <form asp-action="Verify2FA" method="post">
+    <form asp-action="Enable2FA" method="post">
         <div>
-            <label for="code">Skriv gärna in koden från din autentisierings app här nedan!</label>
-            <input type="text" id="code" name="code" class="form-control" required />
+            <label for="code">Skriv gärna in koden från din autentiseringsapp här nedan!</label>
+            <input type="text" id="code" asp-for="Code" class="form-control" required />
         </div>
-        <button type="submit" class="btn btn-primary">Verifiera</button>
+        <input type="submit" class="btn btn-primary" value="Verifiera" />
     </form>
+
+    <div>
+        <p>QR-koden kommer att uppdateras var <span id="timer">90</span> sekunder.</p>
+    </div>
 </div>
 
 <style>
@@ -24,24 +28,31 @@
 </style>
 
 <script>
-    let countdown = 30;
+    let countdown = 90;
 
-    //refresh QR Code
+    // Refresh QR Code every 90 seconds
     function refreshQRCode() {
         const qrImage = document.getElementById('qr-code');
-        qrImage.src = '@Url.Action("GenerateQRCode", "TwoFactorAuth")' + '?' + new Date().getTime();
-        countdownTime = 30; //this is to reset timer back to 30s
+        qrImage.src = '@Url.Action("GenerateQrCode", "TwoFactorAuth")' + '?' + new Date().getTime(); // Cache-busting
+        countdown = 90; // Reset timer back to 90 seconds
     }
 
     function updateTimer() {
+        countdown--;
         const timerElement = document.getElementById('timer');
-        countdownTime--;
-        timerElement.textContent = countdownTime;
+        if (timerElement) {
+            timerElement.textContent = countdown;
+        }
 
-        if (countdownTime <= 0) {
+        if (countdown <= 0) {
             refreshQRCode();
         }
     }
-    //set interval to refresh the qr every 30 seconds
-    setInterval(updateTimer, 1000); //update the timer every second!
+
+    // Set interval to refresh the QR code every second
+    setInterval(updateTimer, 1000); // Update the timer every second!
+
+    document.querySelector('form').addEventListener('submit', function (event) {
+        console.log('Form submitted');
+    });
 </script>

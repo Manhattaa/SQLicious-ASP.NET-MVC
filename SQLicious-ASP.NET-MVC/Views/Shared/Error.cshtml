@@ -1,0 +1,53 @@
+﻿@{
+    ViewData["Title"] = "Error";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Error - @ViewData["Title"]</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f8f8;
+            color: #333;
+            text-align: center;
+            padding: 50px;
+        }
+
+        .error-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #d9534f;
+        }
+
+        p {
+            font-size: 1.2em;
+        }
+
+        .back-link {
+            color: #007bff;
+            text-decoration: none;
+            font-size: 1em;
+        }
+
+            .back-link:hover {
+                text-decoration: underline;
+            }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <h1>An error occurred</h1>
+        <p>Sorry, something went wrong while processing your request.</p>
+        <a class="back-link" href="/">Go back to Home</a>
+    </div>
+</body>
+</html>

@@ -34,6 +34,7 @@ namespace SQLicious_ASP.NET_MVC.Controllers
         {
             return View();
         }
+
         [HttpGet("adminsettings")]
         public IActionResult AdminSettings()
         {
@@ -55,19 +56,17 @@ namespace SQLicious_ASP.NET_MVC.Controllers
                 { "password", password }
             };
 
-            // No need to serialize to JSON; send as form data
-            var client = _clientFactory.CreateClient();
+            var client = _clientFactory.CreateClient("APIClient");
             var content = new FormUrlEncodedContent(loginData);
 
-            // Send form-encoded data
             var response = await client.PostAsync("https://localhost:7213/api/Admin/Login", content);
 
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsStringAsync();
                 var jsonObject = JObject.Parse(result);
-                string token = jsonObject["token"].ToString();
-                //var token = JsonConvert.DeserializeObject<dynamic>(result)?.Token;
+                string token = jsonObject["token"]?.ToString();
+                bool requires2FA = jsonObject["requiresTwoFactor"]?.Value<bool>() ?? false;
 
                 if (token != null)
                 {
@@ -79,14 +78,28 @@ namespace SQLicious_ASP.NET_MVC.Controllers
                         Expires = DateTimeOffset.UtcNow.AddHours(1)
                     });
 
-                    ViewBag.Message = "Login Successful!";
+                    if (requires2FA)
+                    {
+                        // Set TempData to show the 2FA form
+                        TempData["Show2FAForm"] = true;
+
+                        // Optionally, you can store the user email to pre-fill in the 2FA form if needed
+                        TempData["UserEmail"] = email;
+
+                        return View("Index"); // Re-render the login page with 2FA form
+                    }
+
+                    // Normal login flow (no 2FA required)
                     return RedirectToAction("Dashboard", "Admin");
                 }
             }
 
+            // If we reach here, login failed
             ViewBag.Message = "Login failed! Please try again.";
             return View("Index");
         }
+
+
 
         [HttpPost]
         public async Task<IActionResult> Logout()
@@ -132,6 +145,16 @@ namespace SQLicious_ASP.NET_MVC.Controllers
             var admins = JsonConvert.DeserializeObject<IEnumerable<AdminDTO>>(await response.Content.ReadAsStringAsync());
             return View("AdminSettings", admins);
         }
+
+        public IActionResult Error(int statusCode, string errorMessage = "An unexpected error occurred.")
+        {
+            ViewData["StatusCode"] = statusCode;
+            ViewData["ErrorMessage"] = errorMessage;
+
+
+            return View();
+        }
+
 
     }
 }

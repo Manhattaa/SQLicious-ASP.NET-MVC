@@ -110,22 +110,40 @@ namespace SQLicious_ASP.NET_MVC.Controllers
             return View(menuItemDto);
         }
 
-
-
-
-        [HttpPost("delete/{id}")]
+        [HttpGet("delete/{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             var client = _clientFactory.CreateClient();
-            var response = await client.DeleteAsync($"https://localhost:7213/api/MenuItem/delete/{id}");
+            var response = await client.GetAsync($"https://localhost:7213/api/MenuItem/{id}");
 
             if (response.IsSuccessStatusCode)
             {
-                return RedirectToAction("MenuSettings");
+                var menuItem = JsonConvert.DeserializeObject<MenuItemDTO>(await response.Content.ReadAsStringAsync());
+                return View(menuItem);
             }
 
             return View();
         }
+
+
+
+
+        [HttpPost("delete/{id}")]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var client = _clientFactory.CreateClient();
+            var response = await client.DeleteAsync($"https://localhost:7213/api/MenuItem/{id}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                // Redirect to the MenuSettings action after successful deletion
+                return RedirectToAction("MenuSettings");
+            }
+
+            // If something goes wrong, show the error view
+            return View("Error");
+        }
+
 
         [HttpGet]
         public async Task<IActionResult> GenerateMenuPdf(string menuType)

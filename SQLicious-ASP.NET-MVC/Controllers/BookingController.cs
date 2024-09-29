@@ -5,6 +5,7 @@ using System.Net.Http;
 using Newtonsoft.Json;
 using SQLicious_ASP.NET_MVC.Helpers;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SQLicious_ASP.NET_MVC.Controllers
 {
@@ -18,7 +19,7 @@ namespace SQLicious_ASP.NET_MVC.Controllers
         }
         public async Task<IActionResult> Index(string sortOrder, string searchString, int page = 1, int pageSize = 10)
         {
-            var client = _clientFactory.CreateClient();
+            var client = _clientFactory.CreateClient("APIClient");
 
             // Fetch all bookings from the API
             HttpResponseMessage bookingResponse = await client.GetAsync("https://localhost:7213/api/Booking");
@@ -72,6 +73,7 @@ namespace SQLicious_ASP.NET_MVC.Controllers
 
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> Edit(int id, BookingDTO booking)
         {
             var client = _clientFactory.CreateClient();
@@ -108,6 +110,7 @@ namespace SQLicious_ASP.NET_MVC.Controllers
         }
 
         [HttpPost, ActionName("Delete")]
+        [Authorize]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var client = _clientFactory.CreateClient();
@@ -121,6 +124,7 @@ namespace SQLicious_ASP.NET_MVC.Controllers
             return View("Error");
         }
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> All()
         {
             var client = _clientFactory.CreateClient();

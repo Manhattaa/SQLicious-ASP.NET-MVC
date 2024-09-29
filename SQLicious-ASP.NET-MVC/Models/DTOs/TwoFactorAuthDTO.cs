@@ -3,5 +3,6 @@
     public class TwoFactorAuthDTO
     {
         public string QrCodeUrl { get; set; }
+        public string Code { get; set; }
     }
 }

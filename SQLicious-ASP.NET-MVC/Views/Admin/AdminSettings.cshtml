@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "AdminSettings";
+    ViewData["Title"] = "Admin Settings";
 }
 
 <nav class="admin-navbar">
@@ -14,13 +14,29 @@
             <a href="@Url.Action("Index", "Booking")" class="nav-link">Booking Settings</a>
         </li>
         <li class="nav-item">
-            <!-- Logout button -->
             <form asp-action="Logout" asp-controller="Admin" method="post" style="display:inline;">
                 <button type="submit" class="btn btn-link nav-link" style="text-decoration: none;">Logout</button>
             </form>
         </li>
     </ul>
 </nav>
+
+<div>
+    <!-- Display TempData messages -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+</div>
 
 <div class="d-flex justify-content-between">
     <div>
@@ -36,12 +52,11 @@
 </div>
 
 <script>
-    // Automatically fetch and display booking statistics
     async function fetchStatistics() {
         const response = await fetch('/api/Admin/BookingStatistics');
         const data = await response.json();
         document.getElementById('statisticsDisplay').innerText = `Total Bookings: ${data.totalBookings}`;
     }
 
-    fetchStatistics();  // Call the function on page load to display stats
+    fetchStatistics();
 </script>

@@ -1,9 +1,11 @@
 using DotNetEnv;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using SQLicious_ASP.NET_MVC.Helpers;
 using System.Text;
 
 public class Program
@@ -17,9 +19,27 @@ public class Program
         builder.Services.AddHttpClient("APIClient", client =>
         {
             client.BaseAddress = new Uri("https://localhost:7213/");
-        });
+        })
+            .AddHttpMessageHandler<JwtAuthorizationHandler>();
+
         builder.Services.AddControllersWithViews();
         builder.Services.AddRazorPages();
+
+        builder.Services.AddHttpContextAccessor();
+        builder.Services.AddTransient<JwtAuthorizationHandler>();
+
+        builder.Services.AddSession(options =>
+        {
+            options.Cookie.HttpOnly = true;
+            options.Cookie.IsEssential = true;
+        });
+
+        builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie(options =>
+            {
+                options.LoginPath = "/Admin/Login";
+            });
+        builder.Services.AddAuthorization();
 
         var app = builder.Build();
 
@@ -34,6 +54,7 @@ public class Program
         app.UseStaticFiles();
         app.UseRouting();
 
+        app.UseAuthentication();
         app.UseAuthorization();
 
         app.MapControllers();

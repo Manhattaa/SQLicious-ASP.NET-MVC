@@ -1,5 +1,19 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-}
+﻿@model SQLicious_ASP.NET_MVC.Models.DTOs.MenuItemDTO
+
+<h2>Delete Menu Item</h2>
+
+<h3>Are you sure you want to delete this menu item?</h3>
+<div>
+    <h4>MenuItem ID: @Model.MenuItemId</h4>
+    <p>Name: @Model.Name</p>
+    <p>Description: @Model.Description</p>
+    <p>Price: @Model.Price</p>
+    <p>IsAvailable: @Model.IsAvailable</p>
+    <p>MenuType: @Model.MenuType</p>
+</div>
+
+<form asp-action="DeleteConfirmed" method="post">
+    <input type="hidden" asp-for="MenuItemId" />
+    <input type="submit" value="Delete" class="btn btn-danger" />
+    <a asp-action="MenuSettings" class="btn btn-secondary">Cancel</a>
+</form>

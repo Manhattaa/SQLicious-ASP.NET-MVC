@@ -76,7 +76,7 @@
                         <td>@item.IsAvailable</td>
                         <td>
                             <button class="btn btn-warning" onclick="toggleEdit(@item.MenuItemId)">Edit</button>
-                            <form method="post" action="@Url.Action("Delete", "MenuItem", new { id = item.MenuItemId })" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this item?');">
+                            <form method="post" action="@Url.Action("Delete", "MenuItem", new { id = item.MenuItemId })" style="display:inline;" onsubmit="return confirm('Är du säker på att du vill ta bort denna rätt?');">
                                 <button type="submit" class="btn btn-danger">Delete</button>
                             </form>
                         </td>
