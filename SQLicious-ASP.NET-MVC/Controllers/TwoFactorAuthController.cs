@@ -26,18 +26,16 @@ namespace SQLicious.MVC.Controllers
         [HttpGet]
         public async Task<IActionResult> GenerateQrCode()
         {
-
             var token = HttpContext.Request.Cookies["JWTToken"];
             if (token != null)
             {
-                // Add the token to the Authorization header
                 _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
             }
             else
             {
-                // If no token is found, you might want to redirect to the login page or show an error
                 return Unauthorized("JWT Token not found. Please log in again.");
             }
+
             var response = await _httpClient.GetAsync("https://localhost:7213/api/TwoFactorAuth/generate-qr-code");
             if (response.IsSuccessStatusCode)
             {
@@ -46,6 +44,36 @@ namespace SQLicious.MVC.Controllers
             }
 
             return BadRequest("Could not generate QR code");
+        }
+
+        // POST method to enable 2FA and verify the code
+        [HttpPost("enable-2fa")]
+        public async Task<IActionResult> POSTEnable2FA(Verify2FADTO model)
+        {
+            var token = HttpContext.Request.Cookies["JWTToken"];
+            if (token != null)
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
+            else
+            {
+                return Unauthorized("JWT Token not found. Please log in again!");
+            }
+
+            var content = new StringContent($"{{\"code\":\"{model.Code}\"}}", System.Text.Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync("https://localhost:7213/api/TwoFactorAuth/enable-2fa", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                TempData["SuccessMessage"] = "Congratulations! Two Factor Authentication is now enabled; You are safe... For now.";
+                return RedirectToAction("AdminSettings", "Admin");
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Failed to enable Two Factor Authentication.";
+                return RedirectToAction("Enable2FA", "TwoFactorAuth");
+            }
         }
 
         // Verify the 2FA setup
@@ -57,7 +85,19 @@ namespace SQLicious.MVC.Controllers
                 return View(model);
             }
 
-            var response = await _httpClient.PostAsync($"https://localhost:7213/api/TwoFactorAuth/verify-2fa?code={model.Code}", null);
+            var token = HttpContext.Request.Cookies["JWTToken"];
+            if (token != null)
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
+            else
+            {
+                return Unauthorized("JWT Token not found. Please log in again.");
+            }
+
+            var content = new StringContent($"{{\"code\":\"{model.Code}\"}}", System.Text.Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync($"https://localhost:7213/api/TwoFactorAuth/verify-2fa", content);
 
             if (response.IsSuccessStatusCode)
             {
@@ -72,6 +112,16 @@ namespace SQLicious.MVC.Controllers
         [HttpPost]
         public async Task<IActionResult> Disable2FA()
         {
+            var token = HttpContext.Request.Cookies["JWTToken"];
+            if (token != null)
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            }
+            else
+            {
+                return Unauthorized("JWT Token not found. Please log in again.");
+            }
+
             var response = await _httpClient.PostAsync("https://localhost:7213/api/TwoFactorAuth/disable-2fa", null);
 
             if (response.IsSuccessStatusCode)
