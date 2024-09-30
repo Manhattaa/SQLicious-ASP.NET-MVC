@@ -8,6 +8,7 @@ using System.Text.Json.Nodes;
 using Newtonsoft.Json.Linq;
 using Microsoft.AspNetCore.Authentication;
 using SQLicious_ASP.NET_MVC.Models.DTOs;
+using System.Net.Http.Headers;
 
 namespace SQLicious_ASP.NET_MVC.Controllers
 {
@@ -46,8 +47,8 @@ namespace SQLicious_ASP.NET_MVC.Controllers
         //    return RedirectToAction("Dashboard", "Admin");
         //}
 
-        [HttpGet("login")]
-        public async Task<IActionResult> Login(string email, string password)
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromForm]string email, [FromForm] string password)
         {
             var loginData = new Dictionary<string, string>
             {
@@ -58,17 +59,18 @@ namespace SQLicious_ASP.NET_MVC.Controllers
             var client = _clientFactory.CreateClient();
             var content = new FormUrlEncodedContent(loginData);
 
+            // Send the login request to the API (POST)
             var response = await client.PostAsync("https://localhost:7213/api/Admin/Login", content);
 
             if (response.IsSuccessStatusCode)
             {
                 var result = await response.Content.ReadAsStringAsync();
                 var jsonObject = JObject.Parse(result);
-                string token = jsonObject["token"]?.ToString();
 
+                // Store token or handle 2FA here
+                string token = jsonObject["token"]?.ToString();
                 if (token != null)
                 {
-                    // Store the JWT token in a cookie
                     Response.Cookies.Append("JWTToken", token, new CookieOptions
                     {
                         HttpOnly = true,
@@ -76,14 +78,16 @@ namespace SQLicious_ASP.NET_MVC.Controllers
                         Expires = DateTimeOffset.UtcNow.AddHours(1)
                     });
 
-                    ViewBag.Message = "Login Successful!";
                     return RedirectToAction("Dashboard", "Admin");
                 }
             }
 
-            ViewBag.Message = "Login failed! Please try again.";
+            ViewBag.Message = "Login failed!";
             return View("Index");
         }
+
+
+
 
 
         [HttpPost]
