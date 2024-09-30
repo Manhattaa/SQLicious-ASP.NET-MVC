@@ -17,6 +17,7 @@ public class Program
         builder.Services.AddHttpClient("APIClient", client =>
         {
             client.BaseAddress = new Uri("https://localhost:7213/");
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
         });
         builder.Services.AddControllersWithViews();
         builder.Services.AddRazorPages();

@@ -4,13 +4,13 @@
 <h2>Aktivera 2FA!</h2>
 
 <div>
-    <p>Skanna QR koden nedan med din Autentisierings app.</p>
+    <p>Skanna QR koden nedan med din autentisierings app.</p>
     <img id="qr-code" class="qr-container" src="@Url.Action("GenerateQrCode", "TwoFactorAuth")" alt="QR Code" />
 
-    <form asp-action="Verify2FA" method="post">
+    <form asp-action="POSTEnable2FA" method="post">
         <div>
             <label for="code">Skriv gärna in koden från din autentisierings app här nedan!</label>
-            <input type="text" id="code" name="code" class="form-control" required />
+            <input type="text" id="code" name="Code" class="form-control" required />
         </div>
         <button type="submit" class="btn btn-primary">Verifiera</button>
     </form>
@@ -24,20 +24,17 @@
 </style>
 
 <script>
-    let countdown = 30;
+    let countdownTime = 30;
 
     //refresh QR Code
     function refreshQRCode() {
         const qrImage = document.getElementById('qr-code');
-        qrImage.src = '@Url.Action("GenerateQRCode", "TwoFactorAuth")' + '?' + new Date().getTime();
+        qrImage.src = '@Url.Action("GenerateQrCode", "TwoFactorAuth")' + '?' + new Date().getTime();
         countdownTime = 30; //this is to reset timer back to 30s
     }
 
     function updateTimer() {
-        const timerElement = document.getElementById('timer');
         countdownTime--;
-        timerElement.textContent = countdownTime;
-
         if (countdownTime <= 0) {
             refreshQRCode();
         }
