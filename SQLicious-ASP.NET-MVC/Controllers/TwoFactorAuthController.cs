@@ -22,6 +22,11 @@ namespace SQLicious.MVC.Controllers
             return View();
         }
 
+        public IActionResult Verify2FA()
+        {
+            return View();
+        }
+
         // Generate QR code for 2FA setup
         [HttpGet]
         public async Task<IActionResult> GenerateQrCode()
@@ -101,7 +106,7 @@ namespace SQLicious.MVC.Controllers
 
             if (response.IsSuccessStatusCode)
             {
-                return RedirectToAction("Success"); // Redirect to a success page after verification
+                return RedirectToAction("Dashboard", "Admin"); // Redirect to a success page after verification
             }
 
             ModelState.AddModelError(string.Empty, "Invalid code.");

@@ -9,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using Microsoft.AspNetCore.Authentication;
 using SQLicious_ASP.NET_MVC.Models.DTOs;
 using System.Net.Http.Headers;
+using System.Net;
 
 namespace SQLicious_ASP.NET_MVC.Controllers
 {
@@ -62,7 +63,7 @@ namespace SQLicious_ASP.NET_MVC.Controllers
             // Send the login request to the API (POST)
             var response = await client.PostAsync("https://localhost:7213/api/Admin/Login", content);
 
-            if (response.IsSuccessStatusCode)
+            if (response.IsSuccessStatusCode || HttpStatusCode.Unauthorized == response.StatusCode)
             {
                 var result = await response.Content.ReadAsStringAsync();
                 var jsonObject = JObject.Parse(result);
@@ -77,7 +78,10 @@ namespace SQLicious_ASP.NET_MVC.Controllers
                         Secure = true,
                         Expires = DateTimeOffset.UtcNow.AddHours(1)
                     });
-
+                    if (HttpStatusCode.Unauthorized == response.StatusCode)
+                    {
+                        return RedirectToAction("Verify2FA", "TwoFactorAuth");
+                    }
                     return RedirectToAction("Dashboard", "Admin");
                 }
             }
